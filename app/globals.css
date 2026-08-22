@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-paper text-ink font-body;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display text-ink;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+  a {
+    @apply text-green;
+  }
+  a:hover {
+    @apply text-cyan-hover;
+  }
+  ::selection {
+    background: #13e2e9;
+    color: #0b2e22;
+  }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: .35; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@keyframes barGrow {
+  from { width: 4%; }
+  to { width: 100%; }
+}
+.animate-pulse-dot {
+  animation: pulseDot 1.2s infinite;
+}
+.animate-bar-grow {
+  animation: barGrow 2.2s ease-out forwards;
+}
+
+.placeholder-art {
+  background-image: repeating-linear-gradient(135deg, #F4F1E6 0 8px, #EAE6D6 8px 16px);
+}
