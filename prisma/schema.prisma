@@ -24,6 +24,7 @@ model User {
   businessName  String?
   role          Role      @default(CLIENT)
   active        Boolean   @default(true)
+  lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
 
   accounts        Account[]
@@ -33,6 +34,7 @@ model User {
   engagementEvent EngagementEvent[]
   auditLogs       AdminAuditLog[]        @relation("AdminActor")
   uploadedFiles   DeliverableFile[]      @relation("UploadedBy")
+  completedLines  OrderLine[]            @relation("CompletedBy")
 }
 
 model Account {
@@ -209,9 +211,12 @@ model OrderLine {
   zoomAddon         Boolean @default(false)
   editsIncluded     Int     @default(0)
   editsUsed         Int     @default(0)
+  completedById     String?
+  completedAt       DateTime?
 
   order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   deliverable Deliverable @relation(fields: [deliverableId], references: [id])
+  completedBy User?       @relation("CompletedBy", fields: [completedById], references: [id])
   files       DeliverableFile[]
 
   @@index([orderId])
@@ -279,10 +284,12 @@ model AdminAuditLog {
 }
 
 model ContactMessage {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   email       String
-  message     String   @db.Text
-  skipIntake  Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  message     String    @db.Text
+  skipIntake  Boolean   @default(false)
+  handled     Boolean   @default(false)
+  handledAt   DateTime?
+  createdAt   DateTime  @default(now())
 }

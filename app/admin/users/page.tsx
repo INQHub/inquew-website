@@ -16,6 +16,7 @@ export default async function AdminUsersPage() {
               <th className="px-5 py-3">Name</th>
               <th className="px-5 py-3">Email</th>
               <th className="px-5 py-3">Status</th>
+              <th className="px-5 py-3">Last login</th>
               <th className="px-5 py-3">Role</th>
             </tr>
           </thead>
@@ -25,6 +26,9 @@ export default async function AdminUsersPage() {
                 <td className="px-5 py-3 font-semibold">{u.name ?? "—"}</td>
                 <td className="px-5 py-3 text-muted">{u.email}</td>
                 <td className="px-5 py-3">{u.active ? "Active" : "Deactivated"}</td>
+                <td className="px-5 py-3 text-muted">
+                  {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "Never"}
+                </td>
                 <td className="px-5 py-3">
                   <UserRowControls userId={u.id} role={u.role} active={u.active} />
                 </td>

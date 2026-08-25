@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DefaultDeliveryToggle } from "@/components/default-delivery-toggle";
 import { AccountPrivacyActions } from "@/components/account-privacy-actions";
+import { ChangePasswordForm } from "@/components/change-password-form";
 
 export default async function DashboardAccountPage() {
   const session = await auth();
@@ -23,6 +24,13 @@ export default async function DashboardAccountPage() {
         <div>
           <div className="mb-[6px] text-[13px] font-semibold text-muted">Default delivery</div>
           <DefaultDeliveryToggle />
+        </div>
+      </div>
+
+      <div className="mt-[18px] rounded-[20px] border border-line bg-white p-[26px]">
+        <h3 className="text-[18px] font-semibold">Change password</h3>
+        <div className="mt-4">
+          <ChangePasswordForm />
         </div>
       </div>
 

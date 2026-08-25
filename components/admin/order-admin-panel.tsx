@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCents } from "@/lib/money";
+import { signOffLabel } from "@/lib/name";
 
 type Line = {
   id: string;
@@ -12,6 +13,8 @@ type Line = {
   zoomAddon: boolean;
   editsIncluded: number;
   editsUsed: number;
+  completedAt: string | null;
+  completedBy: { name: string | null; email: string } | null;
   deliverable: { title: string; tier: number };
   files: { id: string; fileName: string; createdAt: string }[];
 };
@@ -32,12 +35,13 @@ type OrderData = {
 
 const STATUSES = ["PENDING_PAYMENT", "PAID", "ASSIGNED", "IN_REVIEW", "AWAITING_CLIENT_REVIEW", "DELIVERED", "CANCELLED"];
 
-export function OrderAdminPanel({ order }: { order: OrderData }) {
+export function OrderAdminPanel({ order, currentAdminName }: { order: OrderData; currentAdminName: string }) {
   const router = useRouter();
   const [status, setStatus] = useState(order.status);
   const [progressPct, setProgressPct] = useState(order.progressPct);
   const [saving, setSaving] = useState(false);
   const [uploadingLine, setUploadingLine] = useState<string | null>(null);
+  const [signingOffLine, setSigningOffLine] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -86,6 +90,17 @@ export function OrderAdminPanel({ order }: { order: OrderData }) {
   async function deleteFile(fileId: string) {
     if (!confirm("Delete this file?")) return;
     await fetch(`/api/admin/orders/${order.id}/files/${fileId}`, { method: "DELETE" });
+    router.refresh();
+  }
+
+  async function toggleSignOff(lineId: string, signedOff: boolean) {
+    setSigningOffLine(lineId);
+    await fetch(`/api/admin/orders/${order.id}/lines/${lineId}/sign-off`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ signedOff })
+    });
+    setSigningOffLine(null);
     router.refresh();
   }
 
@@ -178,6 +193,28 @@ export function OrderAdminPanel({ order }: { order: OrderData }) {
                 className="rounded-[10px] border border-line3 px-4 py-2 text-[13.5px] font-semibold disabled:opacity-60"
               >
                 {uploadingLine === line.id ? "Uploading…" : "Upload finished file"}
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#F3F1E7] pt-3">
+              {line.completedAt ? (
+                <span className="text-[13px] text-muted">
+                  Signed off by <strong>{signOffLabel(line.completedBy?.name)}</strong> on{" "}
+                  {new Date(line.completedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}
+                </span>
+              ) : (
+                <span className="text-[13px] text-faint">Not signed off yet</span>
+              )}
+              <button
+                onClick={() => toggleSignOff(line.id, !line.completedAt)}
+                disabled={signingOffLine === line.id}
+                className="rounded-[10px] border border-line3 px-4 py-2 text-[13.5px] font-semibold disabled:opacity-60"
+              >
+                {signingOffLine === line.id
+                  ? "Saving…"
+                  : line.completedAt
+                    ? "Undo sign-off"
+                    : `Sign off as ${signOffLabel(currentAdminName)}`}
               </button>
             </div>
           </div>

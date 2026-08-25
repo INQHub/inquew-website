@@ -60,10 +60,12 @@ npm run build && npm run start   # production build
 ## 5. Admin panel (`/admin`, requires an ADMIN-role account)
 
 - **Deliverables** — typed edit form per item, plus a raw-JSON editor toggle for direct field edits; new-item form for adding to the catalog.
-- **Orders** — change status/progress, adjust edit credits used per line, upload finished files (goes to Supabase Storage, appears immediately in the client's Downloads tab).
+- **Orders** — change status/progress, adjust edit credits used per line, upload finished files (goes to Supabase Storage, appears immediately in the client's Downloads tab). Each order line also has a **sign-off**: the admin who worked the deliverable clicks "Sign off as {First L.}" (e.g. "Kenny I.") to attribute it to themselves, timestamped; undoable. As more staff accounts are added, this becomes the record of who did what.
 - **Intakes** — read transcripts, regenerate AI problem statements, attach a video manually (for clients who used the no-AI "manual path" and had a phone/video call instead).
-- **Users** — change role (client/admin) or deactivate an account.
+- **Users** — change role (client/admin) or deactivate an account. Shows each user's last login time (recorded automatically on every sign-in), useful once there's more than one staff account.
 - **Engagement** — funnel view over 7/30/90 days, CSV/JSON export of raw events, and CSV/JSON import of externally-generated test results for comparison.
+- **Messages** — inbox for `/contact` form submissions, with an unhandled/handled/all filter and a per-message mark-handled toggle.
+- **Account** — change your own password. Do this immediately if you're still on a seeded default.
 
 `npm run test:engagement -- --days=14 --volume=1` generates additional synthetic engagement events (marked `synthetic: true`) for load-testing that funnel view without touching real traffic data.
 
