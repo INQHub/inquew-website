@@ -25,7 +25,7 @@ Copy `.env.example` to `.env` and fill in what you have. The app is designed to 
 
 | Variable | Required for | Where to get it |
 | --- | --- | --- |
-| `DATABASE_URL` | Everything (the app has no in-memory fallback) | Supabase → Project Settings → Database → Connection string (URI, "Transaction" pooling mode for serverless deploys) |
+| `DATABASE_URL` | Everything (the app has no in-memory fallback) | Supabase → **Connect** button → **Direct Connection** tab → **Transaction pooler** (IPv4-friendly, no add-on needed — plain Direct connection is IPv6-only) → URI. Append `?pgbouncer=true`. |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | Login/sessions | `NEXTAUTH_SECRET`: `openssl rand -base64 32` |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Video/file storage (intake recordings, delivered files) | Supabase → Project Settings → **API Keys** (not the General settings page). Use the **Secret** key (`sb_secret_...`) — it's server-only, never expose it with a `NEXT_PUBLIC_` prefix. The **Publishable** key (`sb_publishable_...`) goes in `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; unused by the app today but harmless to set. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Checkout | Stripe Dashboard → Developers → API keys / Webhooks. Point the webhook at `/api/stripe/webhook`, subscribed to `payment_intent.succeeded` and `payment_intent.payment_failed`. |
@@ -40,9 +40,11 @@ Create two **private** buckets before file uploads will work: `intake-videos` an
 ## 3. Database
 
 ```bash
-npm run db:migrate   # applies prisma/migrations, or `npm run db:push` for a throwaway environment
-npm run db:seed       # 21 deliverables, a demo admin + 2 clients, sample orders, a sample intake, synthetic engagement events
+npm run db:migrate:deploy   # applies the committed prisma/migrations as-is (use this against Supabase)
+npm run db:seed             # 21 deliverables, a demo admin + 2 clients, sample orders, a sample intake, synthetic engagement events
 ```
+
+`db:migrate` (`prisma migrate dev`) is for iterating on the schema locally — it creates a shadow database, which doesn't work through a pgbouncer transaction-pooled connection. Use `db:migrate:deploy` (`prisma migrate deploy`, no shadow DB) against Supabase; `db:push` also works against a pooled connection if you want a quick throwaway sync without migration history.
 
 Seeded logins (passwords from `.env`, defaults in `.env.example` — change before anything public):
 - Admin: `ADMIN_SEED_EMAIL` → `/admin`
