@@ -27,7 +27,7 @@ Copy `.env.example` to `.env` and fill in what you have. The app is designed to 
 | --- | --- | --- |
 | `DATABASE_URL` | Everything (the app has no in-memory fallback) | Supabase → Project Settings → Database → Connection string (URI, "Transaction" pooling mode for serverless deploys) |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | Login/sessions | `NEXTAUTH_SECRET`: `openssl rand -base64 32` |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Video/file storage (intake recordings, delivered files) | Supabase → Project Settings → API. **Service role key is server-only — never expose it with a `NEXT_PUBLIC_` prefix.** |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Video/file storage (intake recordings, delivered files) | Supabase → Project Settings → **API Keys** (not the General settings page). Use the **Secret** key (`sb_secret_...`) — it's server-only, never expose it with a `NEXT_PUBLIC_` prefix. The **Publishable** key (`sb_publishable_...`) goes in `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; unused by the app today but harmless to set. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Checkout | Stripe Dashboard → Developers → API keys / Webhooks. Point the webhook at `/api/stripe/webhook`, subscribed to `payment_intent.succeeded` and `payment_intent.payment_failed`. |
 | `OPENAI_API_KEY` | Video → transcript | platform.openai.com |
 | `ANTHROPIC_API_KEY` | Transcript → 3 problem statements + recommended deliverables | console.anthropic.com. Without this, a lower-quality deterministic fallback runs instead so the intake flow still completes. |
