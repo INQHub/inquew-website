@@ -25,6 +25,7 @@ model User {
   role          Role      @default(CLIENT)
   active        Boolean   @default(true)
   lastLoginAt   DateTime?
+  mustChangePassword Boolean @default(false)
   createdAt     DateTime  @default(now())
 
   accounts        Account[]

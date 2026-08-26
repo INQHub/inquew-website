@@ -11,6 +11,9 @@ export default auth((req) => {
       url.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(url);
     }
+    if (req.auth?.user?.mustChangePassword && pathname !== "/admin/account") {
+      return NextResponse.redirect(new URL("/admin/account", req.url));
+    }
     return;
   }
 
@@ -22,6 +25,9 @@ export default auth((req) => {
       const url = new URL("/login", req.url);
       url.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(url);
+    }
+    if (req.auth.user.mustChangePassword && pathname.startsWith("/dashboard") && pathname !== "/dashboard/account") {
+      return NextResponse.redirect(new URL("/dashboard/account", req.url));
     }
     return;
   }

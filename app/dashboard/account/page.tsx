@@ -7,10 +7,17 @@ import { ChangePasswordForm } from "@/components/change-password-form";
 export default async function DashboardAccountPage() {
   const session = await auth();
   const user = await prisma.user.findUnique({ where: { id: session!.user.id } });
+  const mustChange = session?.user?.mustChangePassword;
 
   return (
     <div className="max-w-[640px]">
       <h1 className="text-[32px] font-bold">Account</h1>
+
+      {mustChange && (
+        <div className="mt-5 rounded-[14px] border border-[#E0C468] bg-[#FBF3D9] px-4 py-3 text-[13.5px] text-[#6B5A1A]">
+          Your account was just created with a temporary password. Set a new one below before continuing.
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 rounded-[20px] border border-line bg-white p-[26px]">
         <div>
@@ -30,7 +37,7 @@ export default async function DashboardAccountPage() {
       <div className="mt-[18px] rounded-[20px] border border-line bg-white p-[26px]">
         <h3 className="text-[18px] font-semibold">Change password</h3>
         <div className="mt-4">
-          <ChangePasswordForm />
+          <ChangePasswordForm redirectAfter={mustChange ? "/dashboard" : undefined} />
         </div>
       </div>
 

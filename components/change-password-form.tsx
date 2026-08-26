@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-export function ChangePasswordForm() {
+export function ChangePasswordForm({ redirectAfter }: { redirectAfter?: string }) {
+  const { update } = useSession();
+  const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,6 +42,11 @@ export function ChangePasswordForm() {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
+    await update();
+    if (redirectAfter) {
+      router.push(redirectAfter);
+      router.refresh();
+    }
   }
 
   return (
