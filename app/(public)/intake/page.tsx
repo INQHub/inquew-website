@@ -6,11 +6,57 @@ import Link from "next/link";
 import { useCart } from "@/components/cart-context";
 import { useTrackEvent } from "@/components/use-track-event";
 import { formatCents } from "@/lib/money";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import type { PublicDeliverable } from "@/lib/types";
 
 type Statement = { id: string; text: string; angle: string | null };
 
 const RECORD_SECONDS_LIMIT = 120;
+
+async function safeJson(res: Response) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A full-length recording easily exceeds Vercel's ~4.5MB serverless request-body
+ * limit, which used to make the upload fail with a non-JSON "Request Entity Too
+ * Large" response that broke on res.json(). Upload straight to Supabase Storage
+ * via a signed URL instead, and only send the small storage path to /transcribe.
+ * Falls back to the old direct-upload path if Supabase isn't configured.
+ */
+async function uploadAndTranscribe(sessionId: string, blob: Blob, fileName: string): Promise<Response> {
+  const supabase = getSupabaseBrowser();
+  if (supabase) {
+    try {
+      const urlRes = await fetch(`/api/intake/${sessionId}/upload-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName })
+      });
+      if (urlRes.ok) {
+        const { bucket, path, token } = await urlRes.json();
+        const { error } = await supabase.storage.from(bucket).uploadToSignedUrl(path, token, blob);
+        if (!error) {
+          return fetch(`/api/intake/${sessionId}/transcribe`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path })
+          });
+        }
+        console.error("direct upload to storage failed, falling back", error);
+      }
+    } catch (err) {
+      console.error("signed upload flow failed, falling back", err);
+    }
+  }
+  const formData = new FormData();
+  formData.append("video", blob, fileName);
+  return fetch(`/api/intake/${sessionId}/transcribe`, { method: "POST", body: formData });
+}
 
 export default function IntakePage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
@@ -139,11 +185,10 @@ export default function IntakePage() {
     setTranscribing(true);
     setTranscribeError(null);
     try {
-      const formData = new FormData();
-      formData.append("video", blob, fileName);
-      const res = await fetch(`/api/intake/${sessionId}/transcribe`, { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Transcription failed");
+      const res = await uploadAndTranscribe(sessionId, blob, fileName);
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data?.message || "Transcription failed");
+      if (!data) throw new Error("The server sent back an unexpected response — please try again.");
       setStatements(data.statements);
       setRecommended(data.recommended);
       track("recording_completed");

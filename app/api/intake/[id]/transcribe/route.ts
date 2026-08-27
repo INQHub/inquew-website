@@ -8,7 +8,7 @@ import {
   keywordFallbackRecommendation,
   type StatementDraft
 } from "@/lib/ai";
-import { isSupabaseConfigured, uploadServerSide, BUCKETS } from "@/lib/supabase";
+import { isSupabaseConfigured, uploadServerSide, downloadServerSide, BUCKETS } from "@/lib/supabase";
 import { getDeliverablesBySlugs } from "@/lib/queries/deliverables";
 
 function fallbackStatements(transcript: string): StatementDraft[] {
@@ -41,28 +41,59 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     );
   }
 
-  const formData = await req.formData().catch(() => null);
-  const file = formData?.get("video");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "A video (or audio) file is required." }, { status: 400 });
-  }
-
   await prisma.intakeSession.update({ where: { id }, data: { status: "UPLOADING" } });
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const fileName = file.name || "intake-recording.webm";
+  const contentType = req.headers.get("content-type") || "";
+  let buffer: Buffer;
+  let storageKey: string;
 
-  if (isSupabaseConfigured()) {
-    uploadServerSide(BUCKETS.intakeVideos, `${id}/${fileName}`, buffer, file.type).catch((err) =>
-      console.error("intake video upload failed (non-fatal)", err)
-    );
+  if (contentType.includes("application/json")) {
+    // Primary path: the client already uploaded the recording straight to Supabase
+    // Storage via a signed URL (bypasses Vercel's serverless body-size limit), so
+    // this request only carries the storage path.
+    const body = await req.json().catch(() => null);
+    if (!body?.path) {
+      return NextResponse.json({ error: "A video (or audio) file is required." }, { status: 400 });
+    }
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "not_configured", message: "Video storage isn't configured yet." },
+        { status: 503 }
+      );
+    }
+    try {
+      buffer = await downloadServerSide(BUCKETS.intakeVideos, body.path);
+    } catch (err) {
+      console.error("failed to fetch uploaded recording from storage", err);
+      return NextResponse.json(
+        { error: "upload_failed", message: "Couldn't retrieve the uploaded recording — try recording again." },
+        { status: 502 }
+      );
+    }
+    storageKey = body.path;
+  } else {
+    // Legacy/fallback path (small files only, e.g. local dev without Supabase configured):
+    // the file rides along in the request body itself.
+    const formData = await req.formData().catch(() => null);
+    const file = formData?.get("video");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "A video (or audio) file is required." }, { status: 400 });
+    }
+    buffer = Buffer.from(await file.arrayBuffer());
+    const fileName = file.name || "intake-recording.webm";
+    storageKey = `${id}/${fileName}`;
+    if (isSupabaseConfigured()) {
+      uploadServerSide(BUCKETS.intakeVideos, storageKey, buffer, file.type).catch((err) =>
+        console.error("intake video upload failed (non-fatal)", err)
+      );
+    }
   }
 
   await prisma.intakeSession.update({ where: { id }, data: { status: "TRANSCRIBING" } });
 
   let transcript: string;
   try {
-    transcript = await transcribeVideo(buffer, fileName);
+    transcript = await transcribeVideo(buffer, storageKey.split("/").pop() || "intake-recording.webm");
   } catch (err) {
     console.error("transcription failed", err);
     await prisma.intakeSession.update({
@@ -105,7 +136,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   await prisma.intakeSession.update({
     where: { id },
-    data: { status: "TRANSCRIBED", videoKey: `${id}/${fileName}`, transcript }
+    data: { status: "TRANSCRIBED", videoKey: storageKey, transcript }
   });
 
   const recommended = await getDeliverablesBySlugs(recommendedSlugs);

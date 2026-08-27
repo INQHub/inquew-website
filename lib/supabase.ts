@@ -44,3 +44,10 @@ export async function uploadServerSide(bucket: string, path: string, file: Buffe
   if (error) throw error;
   return path;
 }
+
+export async function downloadServerSide(bucket: string, path: string): Promise<Buffer> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase.storage.from(bucket).download(path);
+  if (error) throw error;
+  return Buffer.from(await data.arrayBuffer());
+}
