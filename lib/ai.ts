@@ -12,14 +12,16 @@ export function isStatementDraftingConfigured() {
 let _openai: OpenAI | null = null;
 function openai() {
   if (!process.env.OPENAI_API_KEY) throw new Error("OpenAI is not configured — set OPENAI_API_KEY.");
-  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  // A stray newline/space pasted into the env var (common copy-paste mistake) ends up in the
+  // Authorization header and breaks the request before it's even sent — trim defensively.
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() });
   return _openai;
 }
 
 let _anthropic: Anthropic | null = null;
 function anthropic() {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic is not configured — set ANTHROPIC_API_KEY.");
-  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY.trim() });
   return _anthropic;
 }
 

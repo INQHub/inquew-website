@@ -102,7 +102,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     transcript = await transcribeVideo(buffer, storageKey.split("/").pop() || "intake-recording.webm");
   } catch (err) {
     console.error("transcription failed", err);
-    const reason = err instanceof Error ? err.message : String(err);
+    const cause = err instanceof Error ? (err.cause as { message?: string; code?: string } | undefined) : undefined;
+    const reason = err instanceof Error
+      ? `${err.message}${cause ? ` [cause: ${cause.code ?? ""} ${cause.message ?? String(cause)}]`.trim() : ""}`
+      : String(err);
     await prisma.intakeSession.update({
       where: { id },
       data: { status: "FAILED", errorMessage: `Transcription failed: ${reason}` }
