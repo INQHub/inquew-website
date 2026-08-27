@@ -52,11 +52,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const contentType = req.headers.get("content-type") || "";
   let buffer: Buffer;
   let storageKey: string;
+  let transcribeFileName: string;
 
   if (contentType.includes("application/json")) {
-    // Primary path: the client already uploaded the recording straight to Supabase
-    // Storage via a signed URL (bypasses Vercel's serverless body-size limit), so
-    // this request only carries the storage path.
+    // Manual-file-upload fallback for a file too big to ride along directly: the client
+    // already archived it to Supabase Storage via a signed URL, so this request only
+    // carries the storage path. There's no separate audio track to split out here, so
+    // the whole file (which may include video) gets sent to Whisper as-is.
     const body = await req.json().catch(() => null);
     if (!body?.path) {
       return NextResponse.json({ error: "A video (or audio) file is required." }, { status: 400 });
@@ -77,18 +79,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
     }
     storageKey = body.path;
+    transcribeFileName = body.path.split("/").pop() || "intake-recording.webm";
   } else {
-    // Legacy/fallback path (small files only, e.g. local dev without Supabase configured):
-    // the file rides along in the request body itself.
+    // Primary path: the uploaded field is what to transcribe. For a live recording this
+    // is a small audio-only clip split off client-side (Whisper only needs audio, and a
+    // full video easily exceeds Whisper's 25MB cap and gets its connection reset rather
+    // than cleanly rejected). "videoPath" optionally links the full video, which the
+    // client already archived to storage separately.
     const formData = await req.formData().catch(() => null);
     const file = formData?.get("video");
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "A video (or audio) file is required." }, { status: 400 });
     }
     buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = file.name || "intake-recording.webm";
-    storageKey = `${id}/${fileName}`;
-    if (isSupabaseConfigured()) {
+    transcribeFileName = file.name || "intake-recording.webm";
+    const videoPathField = formData?.get("videoPath");
+    const linkedVideoPath = typeof videoPathField === "string" && videoPathField ? videoPathField : null;
+    storageKey = linkedVideoPath || `${id}/${transcribeFileName}`;
+    if (!linkedVideoPath && isSupabaseConfigured()) {
       uploadServerSide(BUCKETS.intakeVideos, storageKey, buffer, file.type).catch((err) =>
         console.error("intake video upload failed (non-fatal)", err)
       );
@@ -99,7 +107,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   let transcript: string;
   try {
-    transcript = await transcribeVideo(buffer, storageKey.split("/").pop() || "intake-recording.webm");
+    transcript = await transcribeVideo(buffer, transcribeFileName);
   } catch (err) {
     console.error("transcription failed", err);
     const cause = err instanceof Error ? (err.cause as { message?: string; code?: string } | undefined) : undefined;

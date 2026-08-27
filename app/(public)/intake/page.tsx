@@ -24,12 +24,27 @@ async function safeJson(res: Response) {
 /**
  * A full-length recording easily exceeds Vercel's ~4.5MB serverless request-body
  * limit, which used to make the upload fail with a non-JSON "Request Entity Too
- * Large" response that broke on res.json(). Upload straight to Supabase Storage
- * via a signed URL instead, and only send the small storage path to /transcribe.
- * Falls back to the old direct-upload path if Supabase isn't configured.
+ * Large" response that broke on res.json(). The full video is archived straight to
+ * Supabase Storage via a signed URL instead (bypasses that limit entirely).
+ *
+ * Separately, Whisper only needs audio, and it hard-caps uploads at 25MB — a couple
+ * of minutes of webcam video (video + audio track) blows past that easily and the
+ * oversized request gets abruptly reset instead of cleanly rejected. So for a live
+ * recording, `audioBlob` is a much smaller audio-only clip split off client-side
+ * specifically for transcription, while `videoBlob` (the full recording) still goes
+ * to storage for the record. The manual "upload a file instead" path has no way to
+ * split out audio, so it transcribes the file as-is (referencing it in storage when
+ * possible, to at least avoid Vercel's body-size limit).
  */
-async function uploadAndTranscribe(sessionId: string, blob: Blob, fileName: string): Promise<Response> {
+async function uploadAndTranscribe(
+  sessionId: string,
+  videoBlob: Blob,
+  fileName: string,
+  audioBlob?: Blob
+): Promise<Response> {
   const supabase = getSupabaseBrowser();
+  let videoPath: string | null = null;
+
   if (supabase) {
     try {
       const urlRes = await fetch(`/api/intake/${sessionId}/upload-url`, {
@@ -39,22 +54,32 @@ async function uploadAndTranscribe(sessionId: string, blob: Blob, fileName: stri
       });
       if (urlRes.ok) {
         const { bucket, path, token } = await urlRes.json();
-        const { error } = await supabase.storage.from(bucket).uploadToSignedUrl(path, token, blob);
-        if (!error) {
-          return fetch(`/api/intake/${sessionId}/transcribe`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ path })
-          });
-        }
-        console.error("direct upload to storage failed, falling back", error);
+        const { error } = await supabase.storage.from(bucket).uploadToSignedUrl(path, token, videoBlob);
+        if (!error) videoPath = path;
+        else console.error("video archive upload failed (non-fatal)", error);
       }
     } catch (err) {
-      console.error("signed upload flow failed, falling back", err);
+      console.error("signed upload flow failed (non-fatal)", err);
     }
   }
+
+  if (audioBlob) {
+    const formData = new FormData();
+    formData.append("video", audioBlob, "intake-audio.webm");
+    if (videoPath) formData.append("videoPath", videoPath);
+    return fetch(`/api/intake/${sessionId}/transcribe`, { method: "POST", body: formData });
+  }
+
+  if (videoPath) {
+    return fetch(`/api/intake/${sessionId}/transcribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: videoPath })
+    });
+  }
+
   const formData = new FormData();
-  formData.append("video", blob, fileName);
+  formData.append("video", videoBlob, fileName);
   return fetch(`/api/intake/${sessionId}/transcribe`, { method: "POST", body: formData });
 }
 
@@ -83,6 +108,8 @@ export default function IntakePage() {
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const audioRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -135,20 +162,46 @@ export default function IntakePage() {
         await videoRef.current.play().catch(() => {});
       }
       chunksRef.current = [];
+      audioChunksRef.current = [];
       const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
         ? "video/webm;codecs=vp9,opus"
         : "video/webm";
+      const audioMimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+
+      let videoResult: Blob | null = null;
+      let audioResult: Blob | null = null;
+      const trySubmit = () => {
+        if (videoResult && audioResult) void submitRecording(videoResult, "intake-recording.webm", audioResult);
+      };
+
       const recorder = new MediaRecorder(stream, { mimeType });
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType });
+        videoResult = new Blob(chunksRef.current, { type: mimeType });
         streamRef.current?.getTracks().forEach((t) => t.stop());
-        void submitRecording(blob, "intake-recording.webm");
+        trySubmit();
       };
       recorderRef.current = recorder;
+
+      // Whisper only needs audio and hard-caps uploads at 25MB — split off a lightweight
+      // audio-only track to transcribe instead of sending the whole (much larger) video.
+      const audioOnlyStream = new MediaStream(stream.getAudioTracks());
+      const audioRecorder = new MediaRecorder(audioOnlyStream, { mimeType: audioMimeType });
+      audioRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      audioRecorder.onstop = () => {
+        audioResult = new Blob(audioChunksRef.current, { type: audioMimeType });
+        trySubmit();
+      };
+      audioRecorderRef.current = audioRecorder;
+
       recorder.start();
+      audioRecorder.start();
       setRecording(true);
       setRecTime(0);
       track("recording_started");
@@ -172,6 +225,9 @@ export default function IntakePage() {
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       recorderRef.current.stop();
     }
+    if (audioRecorderRef.current && audioRecorderRef.current.state !== "inactive") {
+      audioRecorderRef.current.stop();
+    }
   }
 
   function onFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
@@ -179,13 +235,13 @@ export default function IntakePage() {
     if (file) void submitRecording(file, file.name);
   }
 
-  async function submitRecording(blob: Blob, fileName: string) {
+  async function submitRecording(blob: Blob, fileName: string, audioBlob?: Blob) {
     if (!sessionId) return;
     setStep(3);
     setTranscribing(true);
     setTranscribeError(null);
     try {
-      const res = await uploadAndTranscribe(sessionId, blob, fileName);
+      const res = await uploadAndTranscribe(sessionId, blob, fileName, audioBlob);
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data?.message || "Transcription failed");
       if (!data) throw new Error("The server sent back an unexpected response — please try again.");
