@@ -8,6 +8,8 @@ import {
 } from "@/lib/ai";
 import { getDeliverablesBySlugs } from "@/lib/queries/deliverables";
 
+export const maxDuration = 30;
+
 function fallbackStatements(transcript: string): StatementDraft[] {
   const gist = transcript.trim().slice(0, 160) || "a recurring operational bottleneck";
   return [

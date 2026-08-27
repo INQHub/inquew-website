@@ -11,6 +11,12 @@ import {
 import { isSupabaseConfigured, uploadServerSide, downloadServerSide, BUCKETS } from "@/lib/supabase";
 import { getDeliverablesBySlugs } from "@/lib/queries/deliverables";
 
+// Downloading the recording, transcribing it with Whisper, and drafting statements with
+// Claude are all chained in this one request — comfortably longer than Vercel's default
+// function timeout (10-15s), which was silently killing this request mid-flight and
+// surfacing as the OpenAI SDK's generic "Connection error."
+export const maxDuration = 60;
+
 function fallbackStatements(transcript: string): StatementDraft[] {
   const gist = transcript.trim().slice(0, 160) || "a recurring operational bottleneck";
   return [
