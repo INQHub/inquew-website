@@ -119,7 +119,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       data: { status: "FAILED", errorMessage: `Transcription failed: ${reason}` }
     });
     return NextResponse.json(
-      { error: "transcription_failed", message: `Transcription failed — try again. (${reason})` },
+      { error: "transcription_failed", message: "Transcription failed — try again." },
       { status: 502 }
     );
   }
