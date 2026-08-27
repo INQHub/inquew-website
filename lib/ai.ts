@@ -1,5 +1,13 @@
+import { Agent } from "node:https";
 import OpenAI, { toFile } from "openai";
 import Anthropic from "@anthropic-ai/sdk";
+
+// Vercel's serverless Node runtime can hand the SDK a pooled keep-alive connection that
+// the remote end has already closed, which surfaces as ECONNRESET on the next request
+// that reuses it — a well-known class of issue for external API calls (especially file
+// uploads) from short-lived serverless functions. Disabling keep-alive trades a slightly
+// slower per-request TLS handshake for not reusing a socket that might already be dead.
+const noKeepAliveAgent = new Agent({ keepAlive: false });
 
 export function isTranscriptionConfigured() {
   return !!process.env.OPENAI_API_KEY;
@@ -14,14 +22,14 @@ function openai() {
   if (!process.env.OPENAI_API_KEY) throw new Error("OpenAI is not configured — set OPENAI_API_KEY.");
   // A stray newline/space pasted into the env var (common copy-paste mistake) ends up in the
   // Authorization header and breaks the request before it's even sent — trim defensively.
-  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() });
+  if (!_openai) _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim(), httpAgent: noKeepAliveAgent });
   return _openai;
 }
 
 let _anthropic: Anthropic | null = null;
 function anthropic() {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("Anthropic is not configured — set ANTHROPIC_API_KEY.");
-  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY.trim() });
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY.trim(), httpAgent: noKeepAliveAgent });
   return _anthropic;
 }
 
