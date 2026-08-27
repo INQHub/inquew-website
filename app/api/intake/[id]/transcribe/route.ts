@@ -96,11 +96,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     transcript = await transcribeVideo(buffer, storageKey.split("/").pop() || "intake-recording.webm");
   } catch (err) {
     console.error("transcription failed", err);
+    const reason = err instanceof Error ? err.message : String(err);
     await prisma.intakeSession.update({
       where: { id },
-      data: { status: "FAILED", errorMessage: "Transcription failed" }
+      data: { status: "FAILED", errorMessage: `Transcription failed: ${reason}` }
     });
-    return NextResponse.json({ error: "transcription_failed", message: "Transcription failed — try again." }, { status: 502 });
+    return NextResponse.json(
+      { error: "transcription_failed", message: `Transcription failed — try again. (${reason})` },
+      { status: 502 }
+    );
   }
 
   const catalog = await prisma.deliverable.findMany({
