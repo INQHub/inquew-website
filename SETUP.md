@@ -29,7 +29,7 @@ Copy `.env.example` to `.env` and fill in what you have. The app is designed to 
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | Login/sessions | `NEXTAUTH_SECRET`: `openssl rand -base64 32` |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Video/file storage (intake recordings, delivered files) | Supabase → Project Settings → **API Keys** (not the General settings page). Use the **Secret** key (`sb_secret_...`) — it's server-only, never expose it with a `NEXT_PUBLIC_` prefix. The **Publishable** key (`sb_publishable_...`) goes in `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; unused by the app today but harmless to set. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Checkout | Stripe Dashboard → Developers → API keys / Webhooks. Point the webhook at `/api/stripe/webhook`, subscribed to `payment_intent.succeeded` and `payment_intent.payment_failed`. |
-| `OPENAI_API_KEY` | Video → transcript | platform.openai.com |
+| `OPENAI_API_KEY` | Video → transcript | platform.openai.com. **Make sure the project has a payment method and credits added** (Settings → Billing) — an unfunded project doesn't return a clean billing error, it silently resets the connection on every request (looks like a network/connectivity bug and is very easy to chase down the wrong path; see chats/chat3.md). |
 | `ANTHROPIC_API_KEY` | Transcript → 3 problem statements + recommended deliverables | console.anthropic.com. Without this, a lower-quality deterministic fallback runs instead so the intake flow still completes. |
 | `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`, `CLIENT_SEED_PASSWORD` | `npm run db:seed` only | Whatever you want the first admin/demo login to be |
 
