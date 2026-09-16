@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
       anonId: e.anonId ?? "",
       path: e.path ?? "",
       synthetic: e.synthetic,
+      actorRole: e.actorRole ?? "",
       createdAt: e.createdAt.toISOString(),
       metadata: e.metadata ? JSON.stringify(e.metadata) : ""
     }));

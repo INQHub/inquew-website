@@ -23,6 +23,7 @@ export async function logEvent(input: {
   anonId?: string | null;
   path?: string | null;
   metadata?: Record<string, unknown>;
+  actorRole?: "CLIENT" | "ADMIN" | null;
 }) {
   try {
     await prisma.engagementEvent.create({
@@ -31,7 +32,8 @@ export async function logEvent(input: {
         userId: input.userId ?? null,
         anonId: input.anonId ?? null,
         path: input.path ?? null,
-        metadata: input.metadata ? (input.metadata as any) : undefined
+        metadata: input.metadata ? (input.metadata as any) : undefined,
+        actorRole: input.actorRole ?? null
       }
     });
   } catch (err) {

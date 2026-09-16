@@ -251,6 +251,7 @@ model EngagementEvent {
   path       String?
   metadata   Json?
   synthetic  Boolean  @default(false)
+  actorRole  Role?
   createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
@@ -258,6 +259,7 @@ model EngagementEvent {
   @@index([type])
   @@index([createdAt])
   @@index([anonId])
+  @@index([actorRole])
 }
 
 model TestResultImport {
@@ -293,4 +295,25 @@ model ContactMessage {
   handled     Boolean   @default(false)
   handledAt   DateTime?
   createdAt   DateTime  @default(now())
+}
+
+// ───────────────────────── Admin notifications ─────────────────────────
+
+enum AdminNotificationType {
+  NEW_ORDER
+  NEW_MESSAGE
+}
+
+model AdminNotification {
+  id        String                @id @default(cuid())
+  type      AdminNotificationType
+  title     String
+  body      String
+  link      String
+  read      Boolean               @default(false)
+  readAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  @@index([read])
+  @@index([createdAt])
 }

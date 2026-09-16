@@ -12,7 +12,8 @@ export async function POST(req: NextRequest) {
     userId: session?.user?.id ?? null,
     anonId: body.anonId ?? null,
     path: body.path ?? null,
-    metadata: body.metadata
+    metadata: body.metadata,
+    actorRole: session?.user?.role ?? null
   });
 
   return NextResponse.json({ ok: true });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { NotificationBell } from "@/components/admin/notification-bell";
 
 const NAV = [
   { href: "/admin", label: "Overview" },
@@ -24,6 +25,7 @@ export function AdminSidebar({ name }: { name: string }) {
         <div className="mt-[3px] text-[9.5px] tracking-[0.14em] text-[#B8C795]">ADMIN</div>
       </div>
       <nav className="grid gap-[5px]">
+        <NotificationBell />
         {NAV.map((item) => {
           const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
           return (

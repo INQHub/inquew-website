@@ -32,10 +32,18 @@ export const FUNNEL_TYPES = [
   "order_placed"
 ];
 
+// Real user engagement excludes synthetic load-test rows and anything logged by an
+// authenticated admin session (e.g. Kenny clicking through the site to test a feature),
+// which would otherwise inflate the funnel with non-customer traffic.
 export async function getEventCounts(since: Date, types: string[] = FUNNEL_TYPES) {
   const rows = await prisma.engagementEvent.groupBy({
     by: ["type"],
-    where: { createdAt: { gte: since }, type: { in: types } },
+    where: {
+      createdAt: { gte: since },
+      type: { in: types },
+      synthetic: false,
+      OR: [{ actorRole: null }, { actorRole: { not: "ADMIN" } }]
+    },
     _count: { _all: true }
   });
   const counts = new Map(rows.map((r) => [r.type, r._count._all]));

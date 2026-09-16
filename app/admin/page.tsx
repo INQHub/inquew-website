@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAdminOverviewStats, getEventCounts } from "@/lib/queries/admin";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 import { formatCents } from "@/lib/money";
 
 const FUNNEL_LABEL: Record<string, string> = {
@@ -16,7 +17,11 @@ const FUNNEL_LABEL: Record<string, string> = {
 
 export default async function AdminOverviewPage() {
   const since = new Date(Date.now() - 30 * 86_400_000);
-  const [stats, funnel] = await Promise.all([getAdminOverviewStats(), getEventCounts(since)]);
+  const [stats, funnel, unreadNotifications] = await Promise.all([
+    getAdminOverviewStats(),
+    getEventCounts(since),
+    getUnreadNotificationCount()
+  ]);
   const maxCount = Math.max(1, ...funnel.map((f) => f.count));
 
   return (
@@ -29,6 +34,9 @@ export default async function AdminOverviewPage() {
         <Stat value={formatCents(stats.revenueCents)} label="Revenue" />
         <Stat value={String(stats.userCount)} label="Client accounts" />
         <Stat value={String(stats.pendingOrders)} label="In the pipeline" />
+        <Link href="/admin/notifications">
+          <Stat value={String(unreadNotifications)} label="Unread notifications" />
+        </Link>
       </div>
 
       <div className="mt-6 rounded-[20px] border border-line bg-white p-6">

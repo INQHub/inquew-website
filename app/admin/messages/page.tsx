@@ -67,7 +67,15 @@ export default async function AdminMessagesPage({
                     {m.skipIntake && " · Requested to skip intake"}
                   </div>
                 </div>
-                <MessageRowControls messageId={m.id} handled={m.handled} />
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`mailto:${m.email}?subject=${encodeURIComponent("Re: your message to Inquew")}`}
+                    className="rounded-lg border border-line3 px-3 py-1.5 text-[13px] font-semibold"
+                  >
+                    Reply
+                  </a>
+                  <MessageRowControls messageId={m.id} handled={m.handled} />
+                </div>
               </div>
               <p className="mt-4 whitespace-pre-wrap text-[14.5px] leading-relaxed">{m.message}</p>
             </div>

@@ -32,6 +32,7 @@ Copy `.env.example` to `.env` and fill in what you have. The app is designed to 
 | `OPENAI_API_KEY` | Video → transcript | platform.openai.com. **Make sure the project has a payment method and credits added** (Settings → Billing) — an unfunded project doesn't return a clean billing error, it silently resets the connection on every request (looks like a network/connectivity bug and is very easy to chase down the wrong path; see chats/chat3.md). |
 | `ANTHROPIC_API_KEY` | Transcript → 3 problem statements + recommended deliverables | console.anthropic.com. Without this, a lower-quality deterministic fallback runs instead so the intake flow still completes. |
 | `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`, `CLIENT_SEED_PASSWORD` | `npm run db:seed` only | Whatever you want the first admin/demo login to be |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Order confirmation emails + admin notification emails (new order, new message) | resend.com → API Keys. Without these, `sendEmail()` logs to the console instead of sending — the in-app notification bell still works either way. |
 
 ### Supabase storage buckets
 
@@ -64,7 +65,8 @@ npm run build && npm run start   # production build
 - **Intakes** — read transcripts, regenerate AI problem statements, attach a video manually (for clients who used the no-AI "manual path" and had a phone/video call instead).
 - **Users** — change role (client/admin) or deactivate an account. Shows each user's last login time (recorded automatically on every sign-in), useful once there's more than one staff account. **New admin** creates an account directly (no public signup for staff) with a one-time temporary password shown once on screen — hand it to the new hire through a secure channel, not email. They're forced to set their own password on first login before they can use anything else in `/admin`.
 - **Engagement** — funnel view over 7/30/90 days, CSV/JSON export of raw events, and CSV/JSON import of externally-generated test results for comparison.
-- **Messages** — inbox for `/contact` form submissions, with an unhandled/handled/all filter and a per-message mark-handled toggle.
+- **Messages** — inbox for `/contact` form submissions, with an unhandled/handled/all filter, a mailto "Reply" link, and a per-message mark-handled toggle.
+- **Notifications** (bell icon in the sidebar, unread count badge, polls every 45s) — one feed for every new order and new contact message, each linking straight to the order or the Messages inbox. Unread/read/all filter, mark-read per item or "Mark all read". If `RESEND_API_KEY`/`EMAIL_FROM` are set, every admin account also gets an email the moment either event happens — don't rely on staying logged into `/admin` to catch a new order.
 - **Account** — change your own password. Do this immediately if you're still on a seeded default.
 
 `npm run test:engagement -- --days=14 --volume=1` generates additional synthetic engagement events (marked `synthetic: true`) for load-testing that funnel view without touching real traffic data.
@@ -75,5 +77,5 @@ npm run build && npm run start   # production build
 2. **Deliverable detail** is a real route (`/deliverables/[slug]`) that also opens as a modal-over-grid when navigated to from within the app (Next.js intercepting routes) — same look as the mockup, but linkable/shareable.
 3. **Video recording** uses real `getUserMedia` + `MediaRecorder` (with a permission-denied fallback to file upload) instead of the mockup's simulated countdown box.
 4. Product images are still the mockup's striped placeholder + keyword label — no real photography exists yet. Set `imageUrl` on a `Deliverable` (admin → raw JSON editor) once you have real assets; the placeholder component isn't wired to read it yet, so that's a small follow-up when photography is ready.
-5. Outbound email (order confirmations, delivery notices) is stubbed to a console log in `lib/email.ts` — no provider was chosen. Swap the body of `sendEmail()` for Resend/Postmark/SES; every call site already goes through that one function.
+5. Outbound email (order confirmations, admin new-order/new-message notifications) goes through `lib/email.ts`, wired to Resend. Set `RESEND_API_KEY`/`EMAIL_FROM` to send for real; without them it falls back to a console log, same as before.
 6. The footer/dashboard sidebar wordmark is still text ("INQUEW"), not a logo image — no reversed/white logo file was provided. Drop one into `public/assets/` and swap it into `SiteFooter`/`DashboardSidebar`/`AdminSidebar` when you have it.

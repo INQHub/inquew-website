@@ -37,6 +37,9 @@ export default async function AdminEngagementPage({
         <div>
           <h1 className="text-[32px] font-bold">Engagement</h1>
           <p className="mt-2 text-muted">Funnel and KPI tracking, last {days} days.</p>
+          <p className="mt-1 text-[12.5px] text-faint">
+            Real visitor/customer activity only — traffic from signed-in admin sessions is excluded.
+          </p>
         </div>
         <div className="flex gap-2">
           {[7, 30, 90].map((d) => (
