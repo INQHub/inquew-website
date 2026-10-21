@@ -15,7 +15,7 @@ function getResend() {
  * RESEND_API_KEY / EMAIL_FROM aren't set, so the app keeps working without
  * email configured (order confirmations, admin notifications, etc. just won't send).
  */
-export async function sendEmail(opts: { to: string; subject: string; html: string }) {
+export async function sendEmail(opts: { to: string; subject: string; html: string; replyTo?: string }) {
   if (!isEmailConfigured()) {
     console.log(`[email:stub] to=${opts.to} subject="${opts.subject}"`);
     return { id: `stub-${Date.now()}`, delivered: false, stub: true };
@@ -26,7 +26,8 @@ export async function sendEmail(opts: { to: string; subject: string; html: strin
       from: process.env.EMAIL_FROM!,
       to: opts.to,
       subject: opts.subject,
-      html: opts.html
+      html: opts.html,
+      replyTo: opts.replyTo
     });
     if (result.error) {
       console.error("sendEmail failed", result.error);

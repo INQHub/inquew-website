@@ -32,7 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     })
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -41,6 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       if (trigger === "update") {
         token.mustChangePassword = false;
+        if (session?.email) token.email = session.email;
       }
       return token;
     },

@@ -16,6 +16,7 @@ export async function notifyAdmins(input: {
   title: string;
   body: string;
   link: string;
+  replyTo?: string;
 }) {
   await prisma.adminNotification.create({
     data: { type: input.type, title: input.title, body: input.body, link: input.link }
@@ -31,7 +32,10 @@ export async function notifyAdmins(input: {
         sendEmail({
           to: admin.email,
           subject: input.title,
-          html: `<p>${input.body}</p><p><a href="${baseUrl()}${input.link}">${baseUrl()}${input.link}</a></p>`
+          html: `<p>${input.body}</p><p><a href="${baseUrl()}${input.link}">${baseUrl()}${input.link}</a></p>${
+            input.replyTo ? `<p>Hit reply on this email to respond directly to them.</p>` : ""
+          }`,
+          replyTo: input.replyTo
         })
       )
     );

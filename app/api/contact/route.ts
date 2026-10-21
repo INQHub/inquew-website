@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
     type: "NEW_MESSAGE",
     title: `New message from ${message.name}`,
     body: message.message.length > 200 ? `${message.message.slice(0, 200)}…` : message.message,
-    link: "/admin/messages"
+    link: "/admin/messages",
+    replyTo: message.email
   });
   return NextResponse.json({ ok: true, id: message.id });
 }

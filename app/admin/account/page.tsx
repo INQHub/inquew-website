@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { ChangePasswordForm } from "@/components/change-password-form";
+import { ChangeEmailForm } from "@/components/change-email-form";
 
 export default async function AdminAccountPage() {
   const session = await auth();
@@ -16,6 +17,16 @@ export default async function AdminAccountPage() {
           Your account was just created with a temporary password. Set a new one below before continuing.
         </div>
       )}
+
+      <div className="mt-6 rounded-[20px] border border-line bg-white p-[26px]">
+        <h3 className="text-[18px] font-semibold">Change email</h3>
+        <p className="mt-1 text-[13.5px] text-muted">
+          This is also your login and where order/message notifications are sent — point it at whatever inbox you actually check.
+        </p>
+        <div className="mt-5">
+          <ChangeEmailForm currentEmail={session?.user?.email ?? ""} />
+        </div>
+      </div>
 
       <div className="mt-6 rounded-[20px] border border-line bg-white p-[26px]">
         <h3 className="text-[18px] font-semibold">Change password</h3>
