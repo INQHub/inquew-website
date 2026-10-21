@@ -294,6 +294,8 @@ model ContactMessage {
   skipIntake  Boolean   @default(false)
   handled     Boolean   @default(false)
   handledAt   DateTime?
+  replyText   String?   @db.Text
+  repliedAt   DateTime?
   createdAt   DateTime  @default(now())
 }
 

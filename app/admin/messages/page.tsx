@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { MessageRowControls } from "@/components/admin/message-row-controls";
+import { MessageReplyBox } from "@/components/admin/message-reply-box";
 
 export default async function AdminMessagesPage({
   searchParams
@@ -67,17 +68,23 @@ export default async function AdminMessagesPage({
                     {m.skipIntake && " · Requested to skip intake"}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`mailto:${m.email}?subject=${encodeURIComponent("Re: your message to Inquew")}`}
-                    className="rounded-lg border border-line3 px-3 py-1.5 text-[13px] font-semibold"
-                  >
-                    Reply
-                  </a>
+                <div className="flex items-start gap-2">
+                  <MessageReplyBox
+                    messageId={m.id}
+                    recipientEmail={m.email}
+                    replyText={m.replyText}
+                    repliedAt={m.repliedAt?.toISOString() ?? null}
+                  />
                   <MessageRowControls messageId={m.id} handled={m.handled} />
                 </div>
               </div>
               <p className="mt-4 whitespace-pre-wrap text-[14.5px] leading-relaxed">{m.message}</p>
+              {m.replyText && (
+                <div className="mt-4 rounded-[14px] border border-green-border bg-green-tint p-4">
+                  <div className="text-[12px] font-semibold uppercase tracking-wide text-green">Your reply</div>
+                  <p className="mt-1 whitespace-pre-wrap text-[14px] leading-relaxed">{m.replyText}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
