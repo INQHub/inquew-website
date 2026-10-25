@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listDeliverables, getCatalogStats } from "@/lib/queries/deliverables";
 import { ShopFilters } from "@/components/shop-filters";
 import { DeliverableCard } from "@/components/deliverable-card";
+import { FoundersPackageTile } from "@/components/founders-package-tile";
 
 export default async function DeliverablesPage({
   searchParams
@@ -21,11 +22,12 @@ export default async function DeliverablesPage({
 
   return (
     <div>
-      <section className="bg-green px-7 pb-[90px] pt-12">
+      <section className="bg-forest px-7 pb-[90px] pt-12">
         <div className="mx-auto max-w-[1240px]">
           <h1 className="text-[42px] font-bold text-white">Deliverables menu</h1>
           <p className="mt-3 max-w-[56ch] text-[17px] text-[#DCEFE7]">
-            Twenty-one finished artifacts, each priced on the front. Add the ones you need to your cart.
+            {stats.count} finished artifacts, each priced on the front. Built by AI agents, quality-checked by a
+            consultant.
           </p>
         </div>
       </section>
@@ -33,6 +35,11 @@ export default async function DeliverablesPage({
       <ShopFilters resultLabel={`${items.length} of ${stats.count} deliverables`} />
 
       <section className="mx-auto max-w-[1240px] px-7 pb-20 pt-6">
+        {!sp.tier && !sp.cat && !sp.q && (
+          <div className="mb-8">
+            <FoundersPackageTile />
+          </div>
+        )}
         <div className="grid grid-cols-[repeat(auto-fill,minmax(272px,1fr))] gap-5">
           {items.map((item) => (
             <DeliverableCard key={item.id} item={item} variant="shop" />

@@ -50,7 +50,7 @@ export default async function AdminOverviewPage() {
           {funnel.map((f) => (
             <div key={f.type} className="grid grid-cols-[160px_1fr_50px] items-center gap-3 text-[13.5px]">
               <span className="text-muted">{FUNNEL_LABEL[f.type] ?? f.type}</span>
-              <div className="h-[10px] overflow-hidden rounded-full bg-[#EFEDE2]">
+              <div className="h-[10px] overflow-hidden rounded-full bg-[#E3E7E1]">
                 <div className="h-full rounded-full bg-green" style={{ width: `${(f.count / maxCount) * 100}%` }} />
               </div>
               <span className="text-right font-semibold">{f.count}</span>

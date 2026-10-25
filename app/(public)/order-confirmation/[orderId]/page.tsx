@@ -25,7 +25,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         </div>
         <h1 className="mt-[22px] text-[36px] font-bold">{isPending ? "Confirming your payment" : "Order placed"}</h1>
         <p className="mt-[14px] text-[17px] text-muted">
-          Order {order.displayId} {isPending ? "is being confirmed." : "is with a consultant."} {!isPending && deliveryNote}
+          Order {order.displayId} {isPending ? "is being confirmed." : "is in progress."} {!isPending && deliveryNote}
         </p>
         {isPending && (
           <p className="mt-2 text-[13.5px] text-faint">
@@ -35,8 +35,8 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         <div className="mt-7 rounded-[18px] border border-line2 bg-sand p-[22px] text-left">
           <div className="text-[12px] font-bold uppercase tracking-[0.06em] text-faint">What happens next</div>
           <div className="mt-3 grid gap-[9px] text-[14.5px]">
-            <div>1. A consultant is assigned and begins the work, AI-assisted.</div>
-            <div>2. A reviewer signs off before anything is released.</div>
+            <div>1. Inquew&apos;s AI agents build your deliverable from your diagnosis and documents.</div>
+            <div>2. A consultant checks it for quality before anything is released.</div>
             <div>3. You receive it, with your tier&apos;s edit credits ready to use.</div>
           </div>
         </div>
@@ -44,7 +44,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
           <Link href="/dashboard" className="rounded-xl bg-cyan px-6 py-[15px] font-semibold text-cyan-ink">
             Open my dashboard
           </Link>
-          <Link href="/deliverables" className="rounded-xl border border-[#CFD8B8] bg-white px-6 py-[15px] font-semibold">
+          <Link href="/deliverables" className="rounded-xl border border-[#C9D1CC] bg-white px-6 py-[15px] font-semibold">
             Back to the menu
           </Link>
         </div>

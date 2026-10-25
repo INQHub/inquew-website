@@ -9,6 +9,8 @@ import { useTrackEvent } from "@/components/use-track-event";
 import { formatCents } from "@/lib/money";
 import { ADDON_PRICE_CENTS } from "@/lib/catalog";
 import { CheckoutPayment } from "@/components/checkout-payment";
+import { TermsGate } from "@/components/terms-gate";
+import { foundersDiscountCents, FOUNDERS_PACKAGE } from "@/lib/bundles";
 
 export default function CheckoutPage() {
   const { data: session } = useSession();
@@ -22,6 +24,7 @@ export default function CheckoutPage() {
   const [deliveryEmail, setDeliveryEmail] = useState(session?.user?.email ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [intent, setIntent] = useState<{ orderId: string; clientSecret: string | null; stripeConfigured: boolean } | null>(
     null
   );
@@ -32,9 +35,19 @@ export default function CheckoutPage() {
     (a, r) => a + (r.line.video ? ADDON_PRICE_CENTS.video : 0) + (r.line.zoom ? ADDON_PRICE_CENTS.zoom : 0),
     0
   );
+  const discountCents = foundersDiscountCents(
+    resolved.map((r) => ({ slug: r.item!.slug, priceCents: r.item!.priceCents }))
+  );
+  const totalCents = itemsTotal + addonTotal - discountCents;
 
-  async function continueToPayment(e: React.FormEvent) {
+  // Submitting the form only opens the terms gate; the order is created after acceptance.
+  function openTerms(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+    setTermsOpen(true);
+  }
+
+  async function continueToPayment(termsVersion: string) {
     setSubmitting(true);
     setError(null);
     track("checkout_started");
@@ -48,13 +61,18 @@ export default function CheckoutPage() {
           deliveryEmail: cart.deliveryMethod === "EMAIL" ? deliveryEmail : undefined,
           contactName,
           contactEmail,
-          businessName
+          businessName,
+          acceptTerms: true,
+          termsVersion
         })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not start checkout");
       setIntent(data);
+      setTermsOpen(false);
+      track("terms_accepted", { termsVersion });
     } catch (err) {
+      setTermsOpen(false);
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setSubmitting(false);
@@ -82,7 +100,7 @@ export default function CheckoutPage() {
       <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] items-start gap-6">
         <div className="grid gap-[18px]">
           {!intent && (
-            <form onSubmit={continueToPayment} className="grid gap-[18px]">
+            <form onSubmit={openTerms} className="grid gap-[18px]">
               <div className="grid gap-4 rounded-[20px] border border-line bg-white p-[26px]">
                 <h3 className="text-[19px] font-semibold">Contact</h3>
                 <Field label="Full name">
@@ -197,12 +215,38 @@ export default function CheckoutPage() {
               );
             })}
           </div>
-          <div className="mt-[18px] flex items-baseline justify-between border-t border-[#EFEDE2] pt-4">
+          {discountCents > 0 && (
+            <div className="mt-3 flex justify-between gap-3 text-[14.5px] font-semibold text-green">
+              <span>
+                {FOUNDERS_PACKAGE.name} ({FOUNDERS_PACKAGE.discountPct}% off)
+              </span>
+              <span>−{formatCents(discountCents)}</span>
+            </div>
+          )}
+          <div className="mt-[18px] flex items-baseline justify-between border-t border-[#E3E7E1] pt-4">
             <span className="text-[15px] font-semibold">Total due</span>
-            <span className="font-display text-[28px] font-bold text-green">{formatCents(itemsTotal + addonTotal)}</span>
+            <span className="font-display text-[28px] font-bold text-green">{formatCents(totalCents)}</span>
           </div>
+          <p className="mt-3 text-[12.5px] text-faint">
+            You&apos;ll review and accept the deliverable terms before paying.
+          </p>
         </div>
       </div>
+      <TermsGate
+        open={termsOpen}
+        busy={submitting}
+        totalCents={totalCents}
+        lines={[
+          ...resolved.map(({ line, item }) => ({
+            title: item!.title,
+            amountCents:
+              item!.priceCents + (line.video ? ADDON_PRICE_CENTS.video : 0) + (line.zoom ? ADDON_PRICE_CENTS.zoom : 0)
+          })),
+          ...(discountCents > 0 ? [{ title: `${FOUNDERS_PACKAGE.name} discount`, amountCents: -discountCents }] : [])
+        ]}
+        onCancel={() => setTermsOpen(false)}
+        onAccept={continueToPayment}
+      />
     </section>
   );
 }
@@ -234,7 +278,7 @@ function DeliveryOption({
       type="button"
       onClick={onClick}
       className="rounded-[13px] border-2 p-4 text-left"
-      style={{ borderColor: active ? "#2D7B5F" : "#E4E0D2", background: active ? "#EFF6F2" : "#FFFFFF" }}
+      style={{ borderColor: active ? "#2D7B5F" : "#C9D1CC", background: active ? "#EFF6F2" : "#FFFFFF" }}
     >
       <div className="text-[15px] font-semibold">
         {title} {tag && <span className="text-[12px] font-semibold text-green">{tag}</span>}

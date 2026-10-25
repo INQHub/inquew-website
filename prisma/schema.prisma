@@ -130,6 +130,15 @@ model IntakeSession {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  // V2 diagnostic: questions/answers asked after the problem statement is chosen,
+  // the business context step, and the written diagnosis shown on the results page.
+  diagnosticQuestions Json?
+  diagnosticAnswers   Json?
+  businessContext     Json?
+  diagnosisSummary    String?   @db.Text
+  recommendedSlugs    String[]  @default([])
+  diagnosedAt         DateTime?
+
   user       User?                 @relation(fields: [userId], references: [id])
   sets       ProblemStatementSet[]
   chosenId   String?
@@ -191,7 +200,10 @@ model Order {
   contactName           String?
   contactEmail          String?
   businessName           String?
-  subtotalCents         Int
+  subtotalCents         Int // amount charged, after any bundle discount
+  discountCents         Int            @default(0)
+  termsAcceptedAt       DateTime?
+  termsVersion          String?
   stripePaymentIntentId String?
   createdAt             DateTime       @default(now())
   updatedAt              DateTime      @updatedAt

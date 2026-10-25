@@ -30,7 +30,7 @@ export default async function AdminDeliverablesPage() {
           </thead>
           <tbody>
             {items.map((d) => (
-              <tr key={d.id} className="border-b border-[#F3F1E7] hover:bg-[#FCFBF6]">
+              <tr key={d.id} className="border-b border-[#F3F1E7] hover:bg-[#F7F8F5]">
                 <td className="px-5 py-3">
                   <Link href={`/admin/deliverables/${d.id}`} className="font-semibold text-ink hover:text-green">
                     {d.title}

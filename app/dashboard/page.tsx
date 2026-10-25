@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { getOrdersForUser, getLatestChosenStatement, STATUS_LABEL, STATUS_STYLE } from "@/lib/queries/orders";
 import { TIER_COLOR, TIER_LABEL } from "@/lib/catalog";
 import { formatCents } from "@/lib/money";
+import { getDiagnosesForUser } from "@/lib/queries/diagnoses";
+import { problemCode } from "@/lib/diagnostic";
 
 const ACTIVE_STATUSES = ["PAID", "ASSIGNED", "IN_REVIEW", "AWAITING_CLIENT_REVIEW"];
 const PAID_STATUSES = [...ACTIVE_STATUSES, "DELIVERED"];
@@ -10,7 +12,12 @@ const PAID_STATUSES = [...ACTIVE_STATUSES, "DELIVERED"];
 export default async function DashboardOverviewPage() {
   const session = await auth();
   const userId = session!.user.id;
-  const [orders, chosenText] = await Promise.all([getOrdersForUser(userId), getLatestChosenStatement(userId)]);
+  const [orders, chosenText, diagnoses] = await Promise.all([
+    getOrdersForUser(userId),
+    getLatestChosenStatement(userId),
+    getDiagnosesForUser(userId)
+  ]);
+  const latestDiagnosis = diagnoses[0];
 
   const active = orders.filter((o) => ACTIVE_STATUSES.includes(o.status));
   const quarterStart = new Date();
@@ -27,10 +34,36 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div>
-      <h1 className="text-[32px] font-bold">Welcome back, {firstName}</h1>
-      <p className="mt-2 text-muted">
-        {active.length} {active.length === 1 ? "deliverable" : "deliverables"} in progress.
-      </p>
+      <section className="flex flex-wrap items-center justify-between gap-5 rounded-[22px] bg-forest px-8 py-7">
+        <div>
+          <h1 className="text-[30px] font-extrabold text-white">Hello, {firstName}</h1>
+          <p className="mt-1 text-[16.5px] text-[#DCE8E0]">
+            Here&apos;s a look at your business. {active.length} {active.length === 1 ? "deliverable" : "deliverables"} in
+            progress.
+          </p>
+        </div>
+        <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full bg-white">
+          <img src="/assets/mascots/flame.png" alt="" className="h-[72px] w-auto" />
+        </div>
+      </section>
+
+      {latestDiagnosis && (
+        <Link
+          href={`/diagnosis/${latestDiagnosis.id}`}
+          className="mt-[22px] flex flex-wrap items-center gap-5 rounded-[20px] border border-line bg-white p-6 text-ink hover:border-green-border hover:text-ink"
+        >
+          <img src="/assets/mascots/document.png" alt="" className="h-[56px] w-auto" />
+          <div className="min-w-0 flex-[1_1_320px]">
+            <div className="text-[13.5px] text-muted">
+              Latest diagnosis ·{" "}
+              {latestDiagnosis.diagnosedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} ·{" "}
+              {problemCode(latestDiagnosis.id)}
+            </div>
+            <div className="mt-1 font-display text-[17px] font-semibold text-forest">{latestDiagnosis.statement}</div>
+          </div>
+          <span className="font-semibold text-green">View full results</span>
+        </Link>
+      )}
 
       <div className="mt-[26px] grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
         <Stat value={String(active.length)} label="Active deliverables" tint="#EFF6F2" ink="#2D7B5F" />
@@ -55,7 +88,7 @@ export default async function DashboardOverviewPage() {
                 <Link
                   key={o.id}
                   href="/dashboard/orders"
-                  className="rounded-[15px] border border-[#EFEDE2] p-4 hover:border-green-border hover:bg-[#FCFBF6]"
+                  className="rounded-[15px] border border-[#E3E7E1] p-4 hover:border-green-border hover:bg-[#F7F8F5]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -80,7 +113,7 @@ export default async function DashboardOverviewPage() {
                       {STATUS_LABEL[o.status]}
                     </span>
                   </div>
-                  <div className="mt-[14px] h-[6px] overflow-hidden rounded-full bg-[#EFEDE2]">
+                  <div className="mt-[14px] h-[6px] overflow-hidden rounded-full bg-[#E3E7E1]">
                     <div className="h-full rounded-full bg-cyan-hover" style={{ width: `${o.progressPct}%` }} />
                   </div>
                 </Link>
@@ -117,7 +150,7 @@ export default async function DashboardOverviewPage() {
               <h3 className="text-[17px] font-semibold text-green">Your problem statement</h3>
               <p className="mt-2 text-[14px] text-[#4A6B5A]">&quot;{chosenText}&quot;</p>
               <Link href="/intake" className="mt-[14px] inline-block text-[13.5px] font-semibold text-green underline">
-                Start a new intake
+                Work on a new problem
               </Link>
             </div>
           )}

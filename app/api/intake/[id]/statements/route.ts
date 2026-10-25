@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { canAccessIntake } from "@/lib/diagnostic";
 import {
   isStatementDraftingConfigured,
   draftStatementsAndRecommendations,
@@ -28,7 +30,9 @@ function fallbackStatements(transcript: string): StatementDraft[] {
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const intake = await prisma.intakeSession.findUnique({ where: { id } });
-  if (!intake) return NextResponse.json({ error: "Intake session not found" }, { status: 404 });
+  if (!intake || !canAccessIntake(intake, await auth())) {
+    return NextResponse.json({ error: "Intake session not found" }, { status: 404 });
+  }
 
   const body = await req.json().catch(() => ({}));
   const catalog = await prisma.deliverable.findMany({
@@ -72,8 +76,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   if (body.action === "select") {
-    const statement = await prisma.problemStatement.findUnique({ where: { id: body.statementId } });
-    if (!statement) return NextResponse.json({ error: "Statement not found" }, { status: 404 });
+    const statement = await prisma.problemStatement.findUnique({
+      where: { id: String(body.statementId ?? "") },
+      include: { set: { select: { sessionId: true } } }
+    });
+    if (!statement || statement.set.sessionId !== id) return NextResponse.json({ error: "Statement not found" }, { status: 404 });
 
     await prisma.$transaction([
       prisma.problemStatement.updateMany({ where: { set: { sessionId: id } }, data: { selected: false } }),

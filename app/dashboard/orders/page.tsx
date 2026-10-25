@@ -28,6 +28,19 @@ export default async function DashboardOrdersPage() {
                 <div className="mt-[2px] text-[12px] text-faint">
                   {o.lines.map((l) => `Tier ${l.deliverable.tier}`).join(", ")}
                 </div>
+                {o.termsAcceptedAt && (
+                  <div className="mt-[2px] text-[12px] text-faint">
+                    Terms accepted{" "}
+                    {o.termsAcceptedAt.toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit"
+                    })}{" "}
+                    · v{o.termsVersion}
+                  </div>
+                )}
               </div>
               <span className="text-muted">{o.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
               <span>
@@ -35,7 +48,10 @@ export default async function DashboardOrdersPage() {
                   {STATUS_LABEL[o.status]}
                 </span>
               </span>
-              <span className="font-display font-bold text-green">{formatCents(o.subtotalCents)}</span>
+              <span className="font-display font-bold text-green">
+                {formatCents(o.subtotalCents)}
+                {o.discountCents > 0 && <span className="block text-[12px] font-normal text-faint">incl. {formatCents(o.discountCents)} bundle discount</span>}
+              </span>
             </div>
           );
         })}

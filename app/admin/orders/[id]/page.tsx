@@ -18,6 +18,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   return (
     <div className="max-w-[760px]">
       <h1 className="text-[28px] font-bold">{order.displayId}</h1>
+      <p className="mt-1 text-[13.5px] text-muted">
+        {order.termsAcceptedAt
+          ? `Deliverable terms v${order.termsVersion} accepted ${order.termsAcceptedAt.toLocaleString("en-US")}`
+          : "Placed before the deliverable terms gate existed"}
+        {order.discountCents > 0 && ` · Founders Package discount $${(order.discountCents / 100).toFixed(2)}`}
+      </p>
       <div className="mt-6">
         <OrderAdminPanel
           currentAdminName={session?.user?.name ?? session?.user?.email ?? "Admin"}
