@@ -29,7 +29,7 @@ export default async function AdminMessagesPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[32px] font-bold">Messages</h1>
+          <h1 className="text-[32px] font-bold">Contact form messages</h1>
           <p className="mt-2 text-muted">Contact form submissions from the site.</p>
         </div>
         <div className="flex gap-2">

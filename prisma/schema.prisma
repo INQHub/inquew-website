@@ -36,6 +36,8 @@ model User {
   auditLogs       AdminAuditLog[]        @relation("AdminActor")
   uploadedFiles   DeliverableFile[]      @relation("UploadedBy")
   completedLines  OrderLine[]            @relation("CompletedBy")
+  threads         ClientThread[]
+  clientFiles     ClientFile[]
 }
 
 model Account {
@@ -143,6 +145,7 @@ model IntakeSession {
   sets       ProblemStatementSet[]
   chosenId   String?
   orders     Order[]
+  clientFiles ClientFile[]
 
   @@index([userId])
 }
@@ -316,6 +319,7 @@ model ContactMessage {
 enum AdminNotificationType {
   NEW_ORDER
   NEW_MESSAGE
+  CLIENT_MESSAGE
 }
 
 model AdminNotification {
@@ -330,4 +334,70 @@ model AdminNotification {
 
   @@index([read])
   @@index([createdAt])
+}
+
+// ───────────────────────── Client portal (V2) ─────────────────────────
+
+/// A conversation between one client and the Inquew team.
+model ClientThread {
+  id            String   @id @default(cuid())
+  userId        String
+  subject       String
+  createdAt     DateTime @default(now())
+  lastMessageAt DateTime @default(now())
+  clientUnread  Boolean  @default(false) // staff replied and the client hasn't opened it
+  staffUnread   Boolean  @default(true) // client wrote and no admin has opened it
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ClientMessage[]
+
+  @@index([userId])
+  @@index([lastMessageAt])
+}
+
+model ClientMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorId  String?
+  fromStaff Boolean  @default(false)
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  thread ClientThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}
+
+/// A document the client uploaded to their business library.
+model ClientFile {
+  id         String   @id @default(cuid())
+  userId     String
+  intakeId   String?
+  storageKey String
+  fileName   String
+  mimeType   String?
+  sizeBytes  Int?
+  createdAt  DateTime @default(now())
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  intake IntakeSession? @relation(fields: [intakeId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+/// Case study essays written in the admin panel and shown on /case-studies once published.
+model CaseStudy {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  industry    String
+  summary     String    @db.Text
+  problem     String    @db.Text
+  result      String    @db.Text
+  body        String    @db.Text
+  coverKey    String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

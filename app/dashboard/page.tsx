@@ -5,6 +5,9 @@ import { TIER_COLOR, TIER_LABEL } from "@/lib/catalog";
 import { formatCents } from "@/lib/money";
 import { getDiagnosesForUser } from "@/lib/queries/diagnoses";
 import { problemCode } from "@/lib/diagnostic";
+import { stageIndex } from "@/lib/order-stage";
+import { StageTracker } from "@/components/portal/stage-tracker";
+import { MessageComposer } from "@/components/portal/message-composer";
 
 const ACTIVE_STATUSES = ["PAID", "ASSIGNED", "IN_REVIEW", "AWAITING_CLIENT_REVIEW"];
 const PAID_STATUSES = [...ACTIVE_STATUSES, "DELIVERED"];
@@ -113,9 +116,10 @@ export default async function DashboardOverviewPage() {
                       {STATUS_LABEL[o.status]}
                     </span>
                   </div>
-                  <div className="mt-[14px] h-[6px] overflow-hidden rounded-full bg-[#E3E7E1]">
-                    <div className="h-full rounded-full bg-cyan-hover" style={{ width: `${o.progressPct}%` }} />
+                  <div className="mt-[14px]">
+                    <StageTracker stage={Math.max(0, stageIndex(o.status))} label={`Progress of ${o.displayId}`} />
                   </div>
+                  <p className="mt-2 text-[12.5px] text-faint">Built by Inquew AI · Quality-checked by a consultant</p>
                 </Link>
               );
             })}
@@ -143,6 +147,23 @@ export default async function DashboardOverviewPage() {
               )}
             </div>
             <p className="mt-4 text-[12.5px] text-faint">Out of credits? Buy a single edit, or escalate to a consultant call.</p>
+          </div>
+
+          <div className="rounded-[20px] border border-line bg-white p-6">
+            <div className="flex items-center gap-3">
+              <img src="/assets/mascots/envelope.png" alt="" className="h-[36px] w-auto" />
+              <h3 className="text-[19px] font-semibold">Is there something else you want to add?</h3>
+            </div>
+            <div className="mt-4">
+              <MessageComposer
+                endpoint="/api/dashboard/threads"
+                openThreadBase="/dashboard/messages/"
+                placeholder="Message the Inquew team"
+              />
+            </div>
+            <Link href="/dashboard/files" className="mt-3 inline-block text-[13.5px] font-semibold text-green underline">
+              Upload documents
+            </Link>
           </div>
 
           {chosenText && (

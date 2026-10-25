@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import type { AdminNotificationType } from "@prisma/client";
 
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
 function baseUrl() {
   return (process.env.NEXTAUTH_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
@@ -32,7 +36,7 @@ export async function notifyAdmins(input: {
         sendEmail({
           to: admin.email,
           subject: input.title,
-          html: `<p>${input.body}</p><p><a href="${baseUrl()}${input.link}">${baseUrl()}${input.link}</a></p>${
+          html: `<p>${escapeHtml(input.body)}</p><p><a href="${baseUrl()}${input.link}">${baseUrl()}${input.link}</a></p>${
             input.replyTo ? `<p>Hit reply on this email to respond directly to them.</p>` : ""
           }`,
           replyTo: input.replyTo

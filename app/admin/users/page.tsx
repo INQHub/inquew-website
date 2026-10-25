@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { UserRowControls } from "@/components/admin/user-row-controls";
 import { NewUserForm } from "@/components/admin/new-user-form";
@@ -28,7 +29,15 @@ export default async function AdminUsersPage() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id} className="border-b border-[#F3F1E7]">
-                <td className="px-5 py-3 font-semibold">{u.name ?? "—"}</td>
+                <td className="px-5 py-3 font-semibold">
+                  {u.role === "CLIENT" ? (
+                    <Link href={`/admin/clients/${u.id}`} className="text-ink hover:text-green">
+                      {u.name ?? "—"}
+                    </Link>
+                  ) : (
+                    u.name ?? "—"
+                  )}
+                </td>
                 <td className="px-5 py-3 text-muted">{u.email}</td>
                 <td className="px-5 py-3">
                   {u.active ? "Active" : "Deactivated"}

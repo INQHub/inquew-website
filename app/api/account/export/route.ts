@@ -6,7 +6,7 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
 
-  const [user, orders, intakeSessions] = await Promise.all([
+  const [user, orders, intakeSessions, files, threads] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: { id: true, name: true, email: true, businessName: true, role: true, createdAt: true }
@@ -18,8 +18,16 @@ export async function GET() {
     prisma.intakeSession.findMany({
       where: { userId: session.user.id },
       include: { sets: { include: { statements: true } } }
+    }),
+    prisma.clientFile.findMany({
+      where: { userId: session.user.id },
+      select: { fileName: true, mimeType: true, sizeBytes: true, createdAt: true, intakeId: true }
+    }),
+    prisma.clientThread.findMany({
+      where: { userId: session.user.id },
+      include: { messages: { select: { fromStaff: true, body: true, createdAt: true } } }
     })
   ]);
 
-  return NextResponse.json({ exportedAt: new Date().toISOString(), user, orders, intakeSessions });
+  return NextResponse.json({ exportedAt: new Date().toISOString(), user, orders, intakeSessions, files, messages: threads });
 }
