@@ -28,7 +28,7 @@ export function DeliverableCard({ item, variant = "shop" }: { item: PublicDelive
   return (
     <div className="flex h-full flex-col rounded-[18px] border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-cardHover hover:border-green-border">
       <Link href={`/deliverables/${item.slug}`} className="block">
-        <PlaceholderArt keyword={item.keyword} className="h-[136px]" />
+        <PlaceholderArt category={item.category} className="h-[136px]" />
         <div className="mt-[14px] flex flex-wrap items-center gap-2">
           <TierBadge tier={item.tier} />
           <span className="text-[11.5px] text-faint">{item.category}</span>

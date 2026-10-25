@@ -3,6 +3,13 @@ import { listDeliverables, getCatalogStats } from "@/lib/queries/deliverables";
 import { ShopFilters } from "@/components/shop-filters";
 import { DeliverableCard } from "@/components/deliverable-card";
 import { FoundersPackageTile } from "@/components/founders-package-tile";
+import { TIER_LABEL, TIER_RANGE, editsLabel } from "@/lib/catalog";
+
+const TIER_ROW_NOTE: Record<number, string> = {
+  1: "short artifacts",
+  2: "reports and sessions",
+  3: "redesigns and prototypes"
+};
 
 export default async function DeliverablesPage({
   searchParams
@@ -19,6 +26,9 @@ export default async function DeliverablesPage({
     }),
     getCatalogStats()
   ]);
+
+  // With no filters or sort applied, show the menu as one scrollable row per tier.
+  const browsing = !sp.tier && !sp.cat && !sp.q && (!sp.sort || sp.sort === "featured");
 
   return (
     <div>
@@ -40,11 +50,39 @@ export default async function DeliverablesPage({
             <FoundersPackageTile />
           </div>
         )}
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(272px,1fr))] gap-5">
-          {items.map((item) => (
-            <DeliverableCard key={item.id} item={item} variant="shop" />
-          ))}
-        </div>
+        {browsing ? (
+          <div className="grid gap-12">
+            {[1, 2, 3].map((tier) => {
+              const row = items.filter((i) => i.tier === tier);
+              if (!row.length) return null;
+              return (
+                <section key={tier} aria-labelledby={`tier-${tier}`}>
+                  <div className="flex flex-wrap items-baseline gap-3">
+                    <h2 id={`tier-${tier}`} className="text-[26px] font-extrabold">
+                      {TIER_LABEL[tier]}
+                    </h2>
+                    <span className="text-muted">
+                      {TIER_RANGE[tier]} · {TIER_ROW_NOTE[tier]} · {editsLabel(tier).toLowerCase()}
+                    </span>
+                  </div>
+                  <div className="-mx-1 mt-4 flex snap-x gap-5 overflow-x-auto px-1 pb-4">
+                    {row.map((item) => (
+                      <div key={item.id} className="w-[272px] flex-shrink-0 snap-start">
+                        <DeliverableCard item={item} variant="shop" />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(272px,1fr))] gap-5">
+            {items.map((item) => (
+              <DeliverableCard key={item.id} item={item} variant="shop" />
+            ))}
+          </div>
+        )}
 
         {items.length === 0 && (
           <div className="py-[70px] text-center">

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { getDeliverablesBySlugs, getCatalogStats } from "@/lib/queries/deliverables";
-import { HERO_SLUGS, TEASER_SLUGS } from "@/prisma/catalog-data";
+import { TEASER_SLUGS } from "@/prisma/catalog-data";
 import { TIER_COLOR, TIER_LABEL, TIER_RANGE, editsLabel } from "@/lib/catalog";
 import { formatCents } from "@/lib/money";
 import { DeliverableCard } from "@/components/deliverable-card";
-import { HeroMenuItem } from "@/components/hero-menu-item";
 import { FoundersPackageTile } from "@/components/founders-package-tile";
+import { PlanCards } from "@/components/plan-cards";
 
 const STEPS = [
   { n: 1, title: "Record", body: "Describe the problem in a two-minute video, in plain words.", img: "laptop" },
@@ -26,85 +26,62 @@ const TIERS = [1, 2, 3].map((t) => ({
         : "Redesigns, pilots, and working prototypes, plus 1-on-1 consultant calls."
 }));
 
+// Prices come from the database, so rebuild this page every 5 minutes: catalog edits in
+// the admin panel show up without a redeploy.
+export const revalidate = 300;
+
 export default async function HomePage() {
-  const [heroItems, teaserItems, stats] = await Promise.all([
-    getDeliverablesBySlugs(HERO_SLUGS),
+  const [teaserItems, stats] = await Promise.all([
     getDeliverablesBySlugs(TEASER_SLUGS),
     getCatalogStats()
   ]);
 
   return (
     <div className="min-h-screen bg-paper">
-      <section className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(380px,1fr))] items-center gap-14 px-7 pb-10 pt-[72px]">
-        <div>
-          <span className="inline-block rounded-full border border-green-border bg-green-tint px-[13px] py-[6px] text-[12.5px] font-semibold uppercase tracking-[0.06em] text-green">
-            Your first diagnostic is free
-          </span>
-          <h1 className="mt-[22px] max-w-[16ch] text-[52px] font-extrabold">
-            Don&apos;t know where to start? Talk to Inquew.
-          </h1>
-          <p className="mt-[22px] max-w-[46ch] text-[18px] text-muted">
-            Record a two-minute video about what&apos;s not working. We&apos;ll diagnose the real business problem and
-            recommend fixed-price fixes from $60 to $1,650, built by AI agents and quality-checked by a consultant.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-[14px]">
-            <Link
-              href="/intake"
-              className="rounded-[13px] bg-cyan px-[26px] py-4 text-[16px] font-semibold text-cyan-ink shadow-[0_4px_18px_rgba(19,226,233,.35)] hover:bg-cyan-hover"
-            >
-              Start your free diagnostic
-            </Link>
-            <Link
-              href="/deliverables"
-              className="rounded-[13px] border border-[#C9D1CC] bg-white px-[26px] py-4 text-[16px] font-semibold text-ink hover:border-green"
-            >
-              Browse deliverables
-            </Link>
-          </div>
-          <div className="mt-[38px] flex flex-wrap gap-7">
-            <Stat value={String(stats.count)} label="deliverables on the menu" />
-            <div className="w-px bg-line3" />
-            <Stat value={formatCents(stats.lowestPriceCents)} label="lowest entry price" />
-            <div className="w-px bg-line3" />
-            <Stat value="100%" label="quality-checked by a consultant" />
-          </div>
-        </div>
-        <div className="relative rounded-[26px] bg-forest p-[26px] shadow-pop">
-          <img
-            src="/assets/mascots/flame.png"
-            alt=""
-            className="absolute -right-4 -top-16 hidden h-[120px] w-auto rounded-full bg-white p-3 shadow-card sm:block"
-          />
-          <div className="mb-[18px] flex items-center justify-between">
-            <span className="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#DCEFE7]">
-              On the menu today
+      <section className="bg-forest text-white">
+        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-12 px-7 pb-24 pt-16">
+          <div className="min-w-0 flex-[1_1_520px]">
+            <span className="inline-block rounded-full bg-white/[.12] px-[14px] py-[6px] text-[14px] font-semibold text-white">
+              Your first diagnostic is free
             </span>
-            <Link href="/deliverables" className="text-[13.5px] font-semibold text-cyan">
-              See all
-            </Link>
+            <h1 className="mt-6 max-w-[16ch] text-[40px] font-extrabold leading-[1.08] text-white sm:text-[54px]">
+              Don&apos;t know where to start? Talk to Inquew.
+            </h1>
+            <p className="mt-6 max-w-[46ch] text-[19px] text-[#DCE8E0]">
+              Record a two-minute video about what&apos;s not working. We&apos;ll diagnose the real business problem and
+              recommend fixed-price fixes, built by AI agents and quality-checked by a consultant.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-5">
+              <Link
+                href="/intake"
+                className="rounded-full bg-sky px-7 py-4 text-[17px] font-bold text-forest hover:bg-aqua hover:text-forest"
+              >
+                Start your free diagnostic
+              </Link>
+              <Link href="/how-it-works" className="text-[17px] font-semibold text-white underline hover:text-aqua">
+                See how it works
+              </Link>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-7">
+              <Stat value={String(stats.count)} label="deliverables on the menu" />
+              <div className="w-px bg-white/20" />
+              <Stat value={formatCents(stats.lowestPriceCents)} label="lowest entry price" />
+              <div className="w-px bg-white/20" />
+              <Stat value="100%" label="quality-checked by a consultant" />
+            </div>
           </div>
-          <div className="grid gap-3">
-            {heroItems.map((it) => (
-              <HeroMenuItem key={it.id} item={it} />
-            ))}
+          <div className="flex min-w-0 flex-[1_1_340px] justify-center">
+            <div className="flex aspect-square w-[340px] max-w-full items-center justify-center rounded-full bg-white">
+              <img src="/assets/mascots/flame.png" alt="Inquew mascot" className="w-[78%] h-auto" />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-forest px-7 py-[26px]">
-        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-center gap-6 text-center">
-          <p className="text-[17px] font-medium text-[#F3F5E8]">
-            AI agents build every deliverable, and a consultant checks each one for quality before it reaches you.
-          </p>
-          <Link href="/how-it-works" className="rounded-[11px] bg-cyan px-5 py-[11px] text-[14.5px] font-semibold text-cyan-ink">
-            How that works
-          </Link>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-[1240px] px-7 py-20">
-        <h2 className="text-[34px] font-bold">How it works</h2>
-        <p className="mt-3 max-w-[60ch] text-muted">From &ldquo;something&apos;s off&rdquo; to a working fix.</p>
+      <section id="how" className="bg-sand">
+      <div className="mx-auto max-w-[1240px] px-7 py-20">
+        <span className="text-[14px] font-semibold uppercase tracking-[0.12em] text-olive">How it works</span>
+        <h2 className="mt-2 text-[38px] font-extrabold">From &ldquo;something&apos;s off&rdquo; to a working fix</h2>
         <div className="mt-[38px] grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-5">
           {STEPS.map((s) => (
             <div key={s.n} className="rounded-[18px] border border-line bg-white p-6 shadow-card">
@@ -116,9 +93,10 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
+      </div>
       </section>
 
-      <section className="border-y border-line2 bg-sand px-7 py-20">
+      <section className="px-7 py-20">
         <div className="mx-auto max-w-[1240px]">
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div>
@@ -144,6 +122,21 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-[1240px] px-7 pt-20">
         <FoundersPackageTile />
+      </section>
+
+      <section id="plans" className="mx-auto max-w-[1240px] px-7 pt-20">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-[640px]">
+            <span className="text-[14px] font-semibold uppercase tracking-[0.12em] text-olive">Diagnostic plans</span>
+            <h2 className="mt-2 text-[38px] font-extrabold leading-[1.15]">
+              Inquew remembers your business, so every diagnostic gets sharper
+            </h2>
+          </div>
+          <Link href="/pricing" className="font-semibold">
+            Compare plans
+          </Link>
+        </div>
+        <PlanCards />
       </section>
 
       <section className="mx-auto max-w-[1240px] px-7 py-20">
@@ -214,8 +207,8 @@ export default async function HomePage() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <div className="font-display text-2xl font-bold text-green">{value}</div>
-      <div className="text-[13px] text-faint">{label}</div>
+      <div className="font-display text-2xl font-bold text-white">{value}</div>
+      <div className="text-[13px] text-[#C4D6CA]">{label}</div>
     </div>
   );
 }

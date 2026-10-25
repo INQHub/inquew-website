@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="bg-forest px-7 pb-[34px] pt-[56px]">
+    <footer className="bg-[#0E2E13] px-7 pb-[34px] pt-[56px]">
       <div className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-9">
         <div>
           <img src="/assets/inquew-logo-white.png" alt="Inquew" className="h-[64px] w-auto" />
@@ -18,6 +18,9 @@ export function SiteFooter() {
             </Link>
             <Link href="/deliverables" className="text-[14.5px] text-[#F3F5E8] hover:text-cyan">
               Deliverables
+            </Link>
+            <Link href="/pricing" className="text-[14.5px] text-[#F3F5E8] hover:text-cyan">
+              Pricing
             </Link>
             <Link href="/intake" className="text-[14.5px] text-[#F3F5E8] hover:text-cyan">
               Free diagnostic
@@ -35,6 +38,9 @@ export function SiteFooter() {
             </Link>
             <Link href="/contact" className="text-[14.5px] text-[#F3F5E8] hover:text-cyan">
               Contact
+            </Link>
+            <Link href="/case-studies" className="text-[14.5px] text-[#F3F5E8] hover:text-cyan">
+              Case studies
             </Link>
             <Link href="/privacy" className="text-[14.5px] text-[#F3F5E8] hover:text-cyan">
               Privacy policy

@@ -45,7 +45,7 @@ export function DeliverableDetail({
   return (
     <div>
       <div className="relative flex aspect-[21/9] items-end p-[18px]">
-        <PlaceholderArt className="absolute inset-0" />
+        <PlaceholderArt category={item.category} className="absolute inset-0 rounded-none" />
         <span
           className="absolute left-[18px] top-[18px] rounded-full px-3 py-[5px] text-[11px] font-bold text-white"
           style={{ background: TIER_COLOR[item.tier] }}

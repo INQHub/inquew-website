@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TIER_COLOR, TIER_LABEL } from "@/lib/catalog";
 import { formatCents } from "@/lib/money";
 import type { PublicDeliverable } from "@/lib/types";
+import { PlaceholderArt } from "@/components/placeholder-art";
 
 export function HeroMenuItem({ item }: { item: PublicDeliverable }) {
   return (
@@ -9,7 +10,7 @@ export function HeroMenuItem({ item }: { item: PublicDeliverable }) {
       href={`/deliverables/${item.slug}`}
       className="flex items-center gap-[14px] rounded-2xl bg-white p-[14px] transition-transform hover:-translate-y-0.5"
     >
-      <div className="placeholder-art h-16 w-16 flex-shrink-0 rounded-[11px]" />
+      <PlaceholderArt category={item.category} className="h-16 w-16 flex-shrink-0 rounded-[11px]" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span
