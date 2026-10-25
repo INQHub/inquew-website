@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
@@ -68,6 +69,11 @@ function LoginForm() {
         <Field label="Password">
           <input required type="password" minLength={mode === "signup" ? 8 : undefined} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-[11px] border border-line3 px-[14px] py-[13px] outline-none focus:border-green" />
         </Field>
+        {mode === "signin" && (
+          <Link href={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ""}`} className="-mt-1 justify-self-start text-[13.5px] font-semibold text-green">
+            Forgot password?
+          </Link>
+        )}
         {error && <p className="text-[13.5px] text-red-700">{error}</p>}
         <button
           type="submit"
