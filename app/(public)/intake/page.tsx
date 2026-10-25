@@ -127,7 +127,7 @@ export default function IntakePage() {
   const [qIndex, setQIndex] = useState(0);
 
   const [website, setWebsite] = useState("");
-  const [industry, setIndustry] = useState(INDUSTRIES[0]);
+  const [industry, setIndustry] = useState("");
   const [department, setDepartment] = useState(DEPARTMENTS[0]);
   const [role, setRole] = useState("");
 
@@ -733,7 +733,10 @@ export default function IntakePage() {
               <input id="website" type="text" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://yourcompany.com" className={inputCls} />
             </Field>
             <Field id="industry" label="Industry">
-              <select id="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} className={inputCls}>
+              <select id="industry" required value={industry} onChange={(e) => setIndustry(e.target.value)} className={inputCls}>
+                <option value="" disabled>
+                  Choose your industry
+                </option>
                 {INDUSTRIES.map((x) => (
                   <option key={x}>{x}</option>
                 ))}

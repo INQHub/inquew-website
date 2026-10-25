@@ -26,7 +26,28 @@ export type BusinessContext = {
   role?: string;
 };
 
-export const INDUSTRIES = ["Trades and construction", "Logistics", "Home services", "Professional services", "Retail", "Other"];
+export const INDUSTRIES = [
+  "Agriculture",
+  "Construction",
+  "E-commerce",
+  "Education",
+  "Finance",
+  "Food",
+  "Government & Public Administration",
+  "Healthcare",
+  "Home Services",
+  "Hospitality",
+  "Legal",
+  "Logistics",
+  "Manufacturing",
+  "Media",
+  "Professional Services",
+  "Real Estate & Property Management",
+  "Retail",
+  "Technology",
+  "Transportation",
+  "Other"
+];
 export const DEPARTMENTS = ["Owner / leadership", "Operations", "Field operations", "Office and admin", "Sales", "Finance", "Other"];
 
 /** Short human-readable code for a problem space, e.g. PS-8K2QF. */
