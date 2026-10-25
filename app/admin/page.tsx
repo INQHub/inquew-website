@@ -37,6 +37,7 @@ export default async function AdminCommandCenterPage() {
         <Stat value={String(cc.kpis.queued)} label="Queued" />
         <Stat value={String(cc.kpis.inProgress)} label="In progress" />
         <Stat value={String(cc.kpis.clients)} label="Client accounts" href="/admin/clients" />
+        <Stat value={String(cc.kpis.pro + cc.kpis.premium)} label={`Subscribers · ${cc.kpis.pro} Pro / ${cc.kpis.premium} Premium`} />
         <Stat value={String(cc.kpis.unreadThreads)} label="Unread client messages" href="/admin/client-messages" alert={cc.kpis.unreadThreads > 0} />
       </div>
 

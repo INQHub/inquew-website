@@ -13,10 +13,10 @@ const TIER_BLURB: Record<number, string> = {
 
 const COMPARE = [
   ["Diagnostic tests", "1, first visit only", "5", "7"],
-  ["Stakeholder interview sets", "—", "5", "7"],
   ["Business library memory", "Yes", "Yes", "Yes"],
-  ["Quarterly report with recommended deliverables", "—", "—", "Yes"],
-  ["Extra diagnostics", "Upgrade", "Upgrade to Premium", "$10 each"]
+  ["Extra diagnostics", "Upgrade", "Upgrade to Premium", "$10 each"],
+  ["Stakeholder interview sets (coming soon)", "—", "5", "7"],
+  ["Quarterly report with recommended deliverables (coming soon)", "—", "—", "Yes"]
 ];
 
 const FAQ = [
@@ -26,7 +26,14 @@ const FAQ = [
   },
   { q: "Do I need a plan to buy deliverables?", a: "No. A free account can order any deliverable at its listed price." },
   { q: "Is my data used to train AI?", a: "No. Not by us, and our AI providers' API terms don't allow it either." },
-  { q: "When can I sign up for Pro or Premium?", a: "Paid plans are coming soon. Your free diagnostic is available now." }
+  {
+    q: "Can I cancel any time?",
+    a: "Yes. Cancel from Plan & billing in your dashboard. You keep your plan until the end of the month you've paid for, then move to Free."
+  },
+  {
+    q: "What happens when I run out of diagnostics?",
+    a: "Your allowance resets each billing month. Pro members can upgrade to Premium, and Premium members can buy extra diagnostics for $10 each. Extras never expire."
+  }
 ];
 
 export default function PricingPage() {

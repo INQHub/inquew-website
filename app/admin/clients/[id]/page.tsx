@@ -6,6 +6,8 @@ import { STATUS_LABEL, STATUS_STYLE } from "@/lib/queries/orders";
 import { formatCents } from "@/lib/money";
 import { formatBytes } from "@/lib/uploads";
 import { FileActions } from "@/components/portal/file-actions";
+import { getPlanUsage } from "@/lib/subscriptions";
+import { PLANS, usageLine } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,7 @@ export default async function AdminClientRecordPage({ params }: { params: Promis
   const intakeCode = new Map(client.intakeSessions.map((i) => [i.id, problemCode(i.id)]));
   const paidTotal = client.orders.filter((o) => o.status !== "PENDING_PAYMENT" && o.status !== "CANCELLED").reduce((n, o) => n + o.subtotalCents, 0);
   const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const usage = await getPlanUsage(client.id);
 
   return (
     <div className="grid gap-6">
@@ -39,6 +42,13 @@ export default async function AdminClientRecordPage({ params }: { params: Promis
         <p className="mt-1 text-muted">
           {[client.name, client.email].filter(Boolean).join(" · ")} · joined {fmt(client.createdAt)} · {formatCents(paidTotal)} lifetime
         </p>
+        {usage && (
+          <p className="mt-1 text-[14px] text-muted">
+            <strong className="text-forest">{PLANS[usage.plan].name}</strong>
+            {usage.status && usage.plan !== "FREE" ? ` (${usage.status.replace(/_/g, " ")}${usage.cancelAtPeriodEnd ? ", cancels at period end" : ""})` : ""} ·{" "}
+            {usageLine(usage)}
+          </p>
+        )}
       </div>
 
       <Card title="Problem spaces and diagnoses">

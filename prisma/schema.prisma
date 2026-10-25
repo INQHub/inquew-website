@@ -14,6 +14,13 @@ enum Role {
   ADMIN
 }
 
+/// Diagnostic subscription plan. FREE is everyone without an active Stripe subscription.
+enum Plan {
+  FREE
+  PRO
+  PREMIUM
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -28,6 +35,17 @@ model User {
   mustChangePassword Boolean @default(false)
   createdAt     DateTime  @default(now())
 
+  /// Subscription state, kept in sync from Stripe (checkout return + webhooks).
+  plan                   Plan      @default(FREE)
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  subscriptionStatus     String?
+  planPeriodStart        DateTime?
+  planPeriodEnd          DateTime?
+  planCancelAtPeriodEnd  Boolean   @default(false)
+  /// Extra diagnostics bought at $10 each. They don't expire and are used after the monthly allowance.
+  extraDiagnosticCredits Int       @default(0)
+
   accounts        Account[]
   sessions        Session[]
   intakeSessions  IntakeSession[]
@@ -38,6 +56,7 @@ model User {
   completedLines  OrderLine[]            @relation("CompletedBy")
   threads         ClientThread[]
   clientFiles     ClientFile[]
+  creditPurchases DiagnosticCreditPurchase[]
 }
 
 model Account {
@@ -140,6 +159,8 @@ model IntakeSession {
   diagnosisSummary    String?   @db.Text
   recommendedSlugs    String[]  @default([])
   diagnosedAt         DateTime?
+  /// True when this diagnosis used an extra diagnostic credit instead of the plan's allowance.
+  usedExtraCredit     Boolean   @default(false)
 
   user       User?                 @relation(fields: [userId], references: [id])
   sets       ProblemStatementSet[]
@@ -400,4 +421,21 @@ model CaseStudy {
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+// ───────────────────────── Plans ─────────────────────────
+
+/// One paid Stripe Checkout for extra diagnostics. The unique session id makes crediting idempotent
+/// when both the checkout return page and the webhook process the same payment.
+model DiagnosticCreditPurchase {
+  id                      String   @id @default(cuid())
+  userId                  String
+  stripeCheckoutSessionId String   @unique
+  quantity                Int
+  amountCents             Int
+  createdAt               DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

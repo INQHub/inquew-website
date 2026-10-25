@@ -23,7 +23,7 @@ export default auth((req) => {
         return NextResponse.json({ error: "Sign in required" }, { status: 401 });
       }
       const url = new URL("/login", req.url);
-      url.searchParams.set("callbackUrl", pathname);
+      url.searchParams.set("callbackUrl", pathname + req.nextUrl.search);
       return NextResponse.redirect(url);
     }
     if (req.auth.user.mustChangePassword && pathname.startsWith("/dashboard") && pathname !== "/dashboard/account") {

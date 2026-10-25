@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { getUnreadClientThreadCount } from "@/lib/messages";
+import { getPlanUsage } from "@/lib/subscriptions";
+import { PLANS, usageLine } from "@/lib/plans";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -10,11 +12,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) redirect("/login?callbackUrl=/dashboard");
-  const unread = await getUnreadClientThreadCount(user.id);
+  const [unread, usage] = await Promise.all([getUnreadClientThreadCount(user.id), getPlanUsage(user.id)]);
+  const meter = usage && !usage.unlimited ? { plan: PLANS[usage.plan].name, line: usageLine(usage), used: usage.used, allowance: usage.allowance } : null;
 
   return (
     <div className="flex min-h-screen flex-wrap items-stretch">
-      <DashboardSidebar name={user.name ?? "You"} businessName={user.businessName ?? user.email} unread={unread} />
+      <DashboardSidebar name={user.name ?? "You"} businessName={user.businessName ?? user.email} unread={unread} meter={meter} />
       <main className="min-w-[320px] flex-1 bg-paper px-[34px] pb-[60px] pt-8">{children}</main>
     </div>
   );

@@ -9,7 +9,19 @@ export async function GET() {
   const [user, orders, intakeSessions, files, threads] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, name: true, email: true, businessName: true, role: true, createdAt: true }
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        businessName: true,
+        role: true,
+        createdAt: true,
+        plan: true,
+        subscriptionStatus: true,
+        planPeriodEnd: true,
+        extraDiagnosticCredits: true,
+        creditPurchases: { select: { quantity: true, amountCents: true, createdAt: true } }
+      }
     }),
     prisma.order.findMany({
       where: { userId: session.user.id },

@@ -5,6 +5,7 @@ import { logEvent, EVENT } from "@/lib/events";
 import { sendEmail } from "@/lib/email";
 import { notifyAdmins } from "@/lib/notifications";
 import { formatCents } from "@/lib/money";
+import { syncCheckoutSession, syncSubscription } from "@/lib/subscriptions";
 
 export async function POST(req: NextRequest) {
   if (!isStripeConfigured() || !process.env.STRIPE_WEBHOOK_SECRET) {
@@ -58,6 +59,24 @@ export async function POST(req: NextRequest) {
       where: { stripePaymentIntentId: intent.id, status: "PENDING_PAYMENT" },
       data: { status: "CANCELLED" }
     });
+  }
+
+  // Pro / Premium subscriptions and extra diagnostic purchases. The endpoint in the Stripe
+  // dashboard must send these event types too (see SETUP.md).
+  try {
+    if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
+      await syncCheckoutSession(event.data.object);
+    }
+    if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      await syncSubscription(event.data.object.id);
+    }
+  } catch (err) {
+    console.error("Stripe plan sync failed", event.type, err);
+    return NextResponse.json({ error: "Sync failed" }, { status: 500 }); // Stripe retries
   }
 
   return NextResponse.json({ received: true });

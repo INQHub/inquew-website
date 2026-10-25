@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getDiagnosis } from "@/lib/queries/diagnoses";
+import { getDiagnosis, getPendingDiagnosis } from "@/lib/queries/diagnoses";
+import { getPlanUsage } from "@/lib/subscriptions";
+import { QuotaPrompt } from "@/components/plan/quota-prompt";
+import { FinishDiagnosisButton } from "@/components/plan/finish-diagnosis-button";
 import { getDeliverablesBySlugs } from "@/lib/queries/deliverables";
 import { problemCode, readQA } from "@/lib/diagnostic";
 import { DeliverableCard } from "@/components/deliverable-card";
@@ -14,7 +17,11 @@ export default async function DiagnosisPage({ params }: { params: Promise<{ id: 
   if (!session?.user) redirect(`/login?callbackUrl=${encodeURIComponent(`/diagnosis/${id}`)}`);
 
   const result = await getDiagnosis(id);
-  if (!result) notFound();
+  if (!result) {
+    const pending = await getPendingDiagnosis(id);
+    if (!pending || (pending.intake.userId !== session.user.id && session.user.role !== "ADMIN")) notFound();
+    return <PendingDiagnosis id={id} statement={pending.statement} ownerId={pending.intake.userId!} />;
+  }
   const { intake, statement } = result;
   if (intake.userId !== session.user.id && session.user.role !== "ADMIN") notFound();
 
@@ -116,6 +123,32 @@ export default async function DiagnosisPage({ params }: { params: Promise<{ id: 
             </div>
           </aside>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Answers saved, diagnosis not written yet: usually stopped at the plan limit. */
+async function PendingDiagnosis({ id, statement, ownerId }: { id: string; statement: string; ownerId: string }) {
+  const usage = await getPlanUsage(ownerId);
+  return (
+    <div className="bg-sand">
+      <div className="mx-auto grid max-w-[860px] gap-6 px-6 pb-20 pt-10">
+        <section className="rounded-3xl bg-forest p-9 text-white">
+          <span className="text-[14px] text-[#C4D6CA]">Not finished yet · Problem space {problemCode(id)}</span>
+          <h1 className="mt-3 text-[30px] font-extrabold leading-[1.2] text-white">{statement}</h1>
+        </section>
+        {usage && usage.remaining <= 0 ? (
+          <QuotaPrompt usage={usage} />
+        ) : (
+          <section className="grid gap-4 rounded-[20px] border border-line bg-white p-8">
+            <h2 className="text-[22px] font-extrabold">Your answers are saved</h2>
+            <p className="text-[16px] text-[#36423B]">
+              Inquew will write your diagnosis from your video and answers. This uses one diagnostic from your plan.
+            </p>
+            <FinishDiagnosisButton intakeId={id} />
+          </section>
+        )}
       </div>
     </div>
   );
