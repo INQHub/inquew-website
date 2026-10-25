@@ -2,6 +2,7 @@ import Link from "next/link";
 import { listDeliverables, getCatalogStats } from "@/lib/queries/deliverables";
 import { ShopFilters } from "@/components/shop-filters";
 import { DeliverableCard } from "@/components/deliverable-card";
+import { CardCarousel } from "@/components/card-carousel";
 import { FoundersPackageTile } from "@/components/founders-package-tile";
 import { TIER_LABEL, TIER_RANGE, editsLabel } from "@/lib/catalog";
 
@@ -51,27 +52,31 @@ export default async function DeliverablesPage({
           </div>
         )}
         {browsing ? (
-          <div className="grid gap-12">
+          <div className="grid min-w-0 gap-12">
             {[1, 2, 3].map((tier) => {
               const row = items.filter((i) => i.tier === tier);
               if (!row.length) return null;
               return (
-                <section key={tier} aria-labelledby={`tier-${tier}`}>
-                  <div className="flex flex-wrap items-baseline gap-3">
-                    <h2 id={`tier-${tier}`} className="text-[26px] font-extrabold">
-                      {TIER_LABEL[tier]}
-                    </h2>
-                    <span className="text-muted">
-                      {TIER_RANGE[tier]} · {TIER_ROW_NOTE[tier]} · {editsLabel(tier).toLowerCase()}
-                    </span>
-                  </div>
-                  <div className="-mx-1 mt-4 flex snap-x gap-5 overflow-x-auto px-1 pb-4">
+                <section key={tier} aria-labelledby={`tier-${tier}`} className="min-w-0">
+                  <CardCarousel
+                    label={`${TIER_LABEL[tier]} deliverables`}
+                    header={
+                      <div className="flex flex-wrap items-baseline gap-3">
+                        <h2 id={`tier-${tier}`} className="text-[26px] font-extrabold">
+                          {TIER_LABEL[tier]}
+                        </h2>
+                        <span className="text-muted">
+                          {TIER_RANGE[tier]} · {TIER_ROW_NOTE[tier]} · {editsLabel(tier).toLowerCase()}
+                        </span>
+                      </div>
+                    }
+                  >
                     {row.map((item) => (
                       <div key={item.id} className="w-[272px] flex-shrink-0 snap-start">
                         <DeliverableCard item={item} variant="shop" />
                       </div>
                     ))}
-                  </div>
+                  </CardCarousel>
                 </section>
               );
             })}

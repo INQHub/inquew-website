@@ -47,12 +47,12 @@ export function ShopFilters({ resultLabel }: { resultLabel: string }) {
           <div className="my-4 h-px bg-[#E3E7E1]" />
           <div className="flex flex-wrap items-center justify-between gap-[14px]">
             <span className="text-[14px] text-faint">{resultLabel}</span>
-            <div className="flex items-center gap-[10px]">
+            <div className="flex min-w-0 flex-wrap items-center gap-[10px]">
               <input
                 value={query}
                 onChange={(e) => update({ q: e.target.value })}
                 placeholder='Try "workflow" or "AI"'
-                className="rounded-[10px] border border-line3 px-[13px] py-[9px] text-[14px] outline-none focus:border-green"
+                className="min-w-0 flex-1 rounded-[10px] border border-line3 px-[13px] py-[9px] text-[14px] outline-none focus:border-green sm:flex-none"
               />
               <span className="text-[13.5px] text-faint">Sort</span>
               <select
