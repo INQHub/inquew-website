@@ -20,7 +20,7 @@ export function SiteHeader() {
   const cartCount = lines.length;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line2 bg-[rgba(253,252,249,.93)] backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-line2 bg-[rgba(255,255,255,.94)] backdrop-blur-md">
       <div className="mx-auto flex max-w-[1240px] flex-wrap items-center gap-7 px-7 py-3">
         <Link href="/" className="flex-shrink-0">
           <Image
@@ -39,7 +39,7 @@ export function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-[9px] px-[14px] py-[9px] text-[14.5px] font-medium hover:bg-[#F2EFE3] ${
+                className={`rounded-[9px] px-[14px] py-[9px] text-[14.5px] font-medium hover:bg-[#F1F4F0] ${
                   active ? "text-green" : "text-muted"
                 }`}
               >
@@ -51,7 +51,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-[10px]">
           <Link
             href={session ? "/dashboard" : "/login"}
-            className="rounded-[9px] px-[14px] py-[9px] text-[14.5px] font-medium text-[#6B7A4A] hover:bg-[#F2EFE3]"
+            className="rounded-[9px] px-[14px] py-[9px] text-[14.5px] font-medium text-[#4F5B54] hover:bg-[#F1F4F0]"
           >
             {session ? session.user?.name?.split(" ")[0] ?? "Dashboard" : "Sign in"}
           </Link>
@@ -71,7 +71,7 @@ export function SiteHeader() {
             href="/intake"
             className="rounded-[11px] bg-cyan px-[18px] py-[11px] text-[14.5px] font-semibold text-cyan-ink shadow-[0_2px_10px_rgba(19,226,233,.35)] hover:bg-cyan-hover"
           >
-            Record Video
+            Free diagnostic
           </Link>
         </div>
       </div>

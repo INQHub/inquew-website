@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { canAccessIntake } from "@/lib/diagnostic";
 import { isSupabaseConfigured, createSignedUploadUrl, BUCKETS } from "@/lib/supabase";
 
 /**
@@ -11,7 +13,9 @@ import { isSupabaseConfigured, createSignedUploadUrl, BUCKETS } from "@/lib/supa
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const intake = await prisma.intakeSession.findUnique({ where: { id } });
-  if (!intake) return NextResponse.json({ error: "Intake session not found" }, { status: 404 });
+  if (!intake || !canAccessIntake(intake, await auth())) {
+    return NextResponse.json({ error: "Intake session not found" }, { status: 404 });
+  }
 
   if (!isSupabaseConfigured()) {
     return NextResponse.json(

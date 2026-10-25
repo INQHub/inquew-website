@@ -66,7 +66,7 @@ export default async function AdminNotificationsPage({
                   <div className="flex items-center gap-2">
                     <span
                       className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-                      style={{ background: n.type === "NEW_ORDER" ? "#EAF1DD" : "#EFEDE2", color: "#425206" }}
+                      style={{ background: n.type === "NEW_ORDER" ? "#EAF1DD" : "#E3E7E1", color: "#425206" }}
                     >
                       {TYPE_LABEL[n.type] ?? n.type}
                     </span>

@@ -36,7 +36,7 @@ export function ShopFilters({ resultLabel }: { resultLabel: string }) {
               </Chip>
             ))}
           </FilterRow>
-          <div className="my-4 h-px bg-[#EFEDE2]" />
+          <div className="my-4 h-px bg-[#E3E7E1]" />
           <FilterRow label="Category">
             {CATS.map((c) => (
               <Chip key={c} active={cat === c} onClick={() => update({ cat: c })}>
@@ -44,7 +44,7 @@ export function ShopFilters({ resultLabel }: { resultLabel: string }) {
               </Chip>
             ))}
           </FilterRow>
-          <div className="my-4 h-px bg-[#EFEDE2]" />
+          <div className="my-4 h-px bg-[#E3E7E1]" />
           <div className="flex flex-wrap items-center justify-between gap-[14px]">
             <span className="text-[14px] text-faint">{resultLabel}</span>
             <div className="flex items-center gap-[10px]">

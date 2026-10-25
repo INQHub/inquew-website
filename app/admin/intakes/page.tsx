@@ -24,7 +24,7 @@ export default async function AdminIntakesPage() {
           </thead>
           <tbody>
             {sessions.map((s) => (
-              <tr key={s.id} className="border-b border-[#F3F1E7] hover:bg-[#FCFBF6]">
+              <tr key={s.id} className="border-b border-[#F3F1E7] hover:bg-[#F7F8F5]">
                 <td className="px-5 py-3">
                   <Link href={`/admin/intakes/${s.id}`} className="font-semibold text-ink hover:text-green">
                     {s.user?.email ?? "Guest"}

@@ -5,13 +5,15 @@ import { TIER_COLOR, TIER_LABEL, TIER_RANGE, editsLabel } from "@/lib/catalog";
 import { formatCents } from "@/lib/money";
 import { DeliverableCard } from "@/components/deliverable-card";
 import { HeroMenuItem } from "@/components/hero-menu-item";
+import { FoundersPackageTile } from "@/components/founders-package-tile";
 
 const STEPS = [
-  { n: 1, title: "Record two minutes", body: "Describe your business problem in your own words." },
-  { n: 2, title: "Get three framings", body: "AI drafts three candidate problem statements from your transcript." },
-  { n: 3, title: "Choose deliverables", body: "Browse the menu and pick what answers your problem." },
-  { n: 4, title: "A consultant builds it", body: "AI-assisted, polished, and reviewed before release." },
-  { n: 5, title: "Receive it securely", body: "Through your dashboard, or by secure expiring email link." }
+  { n: 1, title: "Record", body: "Describe the problem in a two-minute video, in plain words.", img: "laptop" },
+  { n: 2, title: "Frame", body: "Pick one of three AI-drafted problem statements.", img: "pen" },
+  { n: 3, title: "Diagnose", body: "Answer up to seven questions. Your first diagnostic is free.", img: "question" },
+  { n: 4, title: "Choose", body: "Pick fixed-price deliverables. Start with Tier 1.", img: "briefcase" },
+  { n: 5, title: "Build", body: "AI agents build it; a consultant checks quality.", img: "city" },
+  { n: 6, title: "Deliver", body: "Delivered securely to your dashboard.", img: "plane" }
 ];
 
 const TIERS = [1, 2, 3].map((t) => ({
@@ -32,30 +34,29 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FDFCF9" }}>
+    <div className="min-h-screen bg-paper">
       <section className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(380px,1fr))] items-center gap-14 px-7 pb-10 pt-[72px]">
         <div>
           <span className="inline-block rounded-full border border-green-border bg-green-tint px-[13px] py-[6px] text-[12.5px] font-semibold uppercase tracking-[0.06em] text-green">
-            A la carte consulting
+            Your first diagnostic is free
           </span>
-          <h1 className="mt-[22px] max-w-[16ch] text-[52px] font-bold">
-            A transparent consulting platform that lets businesses of any size pick and choose their consulting
-            deliverables for an affordable price.
+          <h1 className="mt-[22px] max-w-[16ch] text-[52px] font-extrabold">
+            Don&apos;t know where to start? Talk to Inquew.
           </h1>
           <p className="mt-[22px] max-w-[46ch] text-[18px] text-muted">
-            Every deliverable is priced in the open, from $60 to $1,500. Buy the one thing you need, not a six-month
-            engagement.
+            Record a two-minute video about what&apos;s not working. We&apos;ll diagnose the real business problem and
+            recommend fixed-price fixes from $60 to $1,650, built by AI agents and quality-checked by a consultant.
           </p>
           <div className="mt-8 flex flex-wrap gap-[14px]">
             <Link
               href="/intake"
               className="rounded-[13px] bg-cyan px-[26px] py-4 text-[16px] font-semibold text-cyan-ink shadow-[0_4px_18px_rgba(19,226,233,.35)] hover:bg-cyan-hover"
             >
-              Start with a free video intake
+              Start your free diagnostic
             </Link>
             <Link
               href="/deliverables"
-              className="rounded-[13px] border border-[#CFD8B8] bg-white px-[26px] py-4 text-[16px] font-semibold text-ink hover:border-green"
+              className="rounded-[13px] border border-[#C9D1CC] bg-white px-[26px] py-4 text-[16px] font-semibold text-ink hover:border-green"
             >
               Browse deliverables
             </Link>
@@ -65,10 +66,15 @@ export default async function HomePage() {
             <div className="w-px bg-line3" />
             <Stat value={formatCents(stats.lowestPriceCents)} label="lowest entry price" />
             <div className="w-px bg-line3" />
-            <Stat value="100%" label="human-reviewed before delivery" />
+            <Stat value="100%" label="quality-checked by a consultant" />
           </div>
         </div>
-        <div className="rounded-[26px] bg-green p-[26px] shadow-pop">
+        <div className="relative rounded-[26px] bg-forest p-[26px] shadow-pop">
+          <img
+            src="/assets/mascots/flame.png"
+            alt=""
+            className="absolute -right-4 -top-16 hidden h-[120px] w-auto rounded-full bg-white p-3 shadow-card sm:block"
+          />
           <div className="mb-[18px] flex items-center justify-between">
             <span className="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#DCEFE7]">
               On the menu today
@@ -88,8 +94,7 @@ export default async function HomePage() {
       <section className="bg-forest px-7 py-[26px]">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-center gap-6 text-center">
           <p className="text-[17px] font-medium text-[#F3F5E8]">
-            A human consultant polishes and reviews every deliverable. AI only helps with intake, drafting, and
-            diagnosis.
+            AI agents build every deliverable, and a consultant checks each one for quality before it reaches you.
           </p>
           <Link href="/how-it-works" className="rounded-[11px] bg-cyan px-5 py-[11px] text-[14.5px] font-semibold text-cyan-ink">
             How that works
@@ -99,14 +104,14 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-[1240px] px-7 py-20">
         <h2 className="text-[34px] font-bold">How it works</h2>
-        <p className="mt-3 max-w-[60ch] text-muted">Five steps from a two-minute video to a finished deliverable.</p>
-        <div className="mt-[38px] grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-5">
+        <p className="mt-3 max-w-[60ch] text-muted">From &ldquo;something&apos;s off&rdquo; to a working fix.</p>
+        <div className="mt-[38px] grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-5">
           {STEPS.map((s) => (
             <div key={s.n} className="rounded-[18px] border border-line bg-white p-6 shadow-card">
-              <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-green-border bg-green-tint font-display text-[17px] font-bold text-green">
-                {s.n}
-              </div>
-              <h3 className="mt-4 text-[18px] font-semibold">{s.title}</h3>
+              <img src={`/assets/mascots/${s.img}.png`} alt="" className="h-[56px] w-auto" />
+              <h3 className="mt-4 text-[18px] font-semibold">
+                {s.n}. {s.title}
+              </h3>
               <p className="mt-2 text-[14.5px] text-muted">{s.body}</p>
             </div>
           ))}
@@ -119,12 +124,12 @@ export default async function HomePage() {
             <div>
               <h2 className="text-[34px] font-bold">Pick what you need</h2>
               <p className="mt-3 max-w-[58ch] text-muted">
-                Six of twenty-one. Each one is a single, finished artifact with a price on the front of it.
+                A few of {stats.count}. Each one is a single, finished artifact with a price on the front of it.
               </p>
             </div>
             <Link
               href="/deliverables"
-              className="rounded-xl border border-[#CFD8B8] bg-white px-[22px] py-[14px] text-[15px] font-semibold hover:border-green"
+              className="rounded-xl border border-[#C9D1CC] bg-white px-[22px] py-[14px] text-[15px] font-semibold hover:border-green"
             >
               View all {stats.count} deliverables
             </Link>
@@ -135,6 +140,10 @@ export default async function HomePage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-[1240px] px-7 pt-20">
+        <FoundersPackageTile />
       </section>
 
       <section className="mx-auto max-w-[1240px] px-7 py-20">
@@ -161,17 +170,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-line2 bg-sand px-7 py-[70px]">
-        <div className="mx-auto grid max-w-[1240px] grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-7">
-          <Trust title="Transcript only" body="Your video is converted to text for diagnosis. We never store facial or voice biometric data." />
-          <Trust
-            title="Human-polished, always reviewed"
-            body="A consultant builds every deliverable and a reviewer signs off before it reaches you — at every tier."
-          />
-          <Trust
-            title="Secure delivery"
-            body="Files land in your dashboard, or arrive as a secure expiring link. Never a raw email attachment."
-          />
+      <section id="security" className="bg-forest px-7 py-[70px]">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2DC6F0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="4" y="10" width="16" height="11" rx="2" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+              <h2 className="text-[32px] font-bold text-white">Your data is protected</h2>
+            </div>
+            <Link href="/privacy" className="font-semibold text-white underline hover:text-aqua">
+              See how we protect your data
+            </Link>
+          </div>
+          <div className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5">
+            <Trust title="Encrypted" body="Encrypted in transit and at rest, with expiring links for every download." />
+            <Trust title="Your data stays in your account" body={"No other client can ever see it, and it's never sold or shared with competitors."} />
+            <Trust title="Not used to train AI" body="Not by us, and our AI providers' API terms don't allow it either." />
+            <Trust title="Quality-checked by a consultant" body="Every AI-built deliverable, before release." />
+          </div>
         </div>
       </section>
 
@@ -185,7 +203,7 @@ export default async function HomePage() {
             href="/intake"
             className="mt-7 inline-block rounded-[13px] bg-cyan px-[30px] py-[17px] text-[16.5px] font-semibold text-cyan-ink hover:bg-cyan-hover"
           >
-            Start with a free video intake
+            Start your free diagnostic
           </Link>
         </div>
       </section>
@@ -204,9 +222,9 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 function Trust({ title, body }: { title: string; body: string }) {
   return (
-    <div>
-      <h3 className="text-[19px] font-semibold">{title}</h3>
-      <p className="mt-2 text-[14.5px] text-muted">{body}</p>
+    <div className="rounded-2xl bg-white/[.08] p-6">
+      <h3 className="text-[17px] font-semibold text-white">{title}</h3>
+      <p className="mt-2 text-[14.5px] text-[#C4D6CA]">{body}</p>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { TierBadge } from "@/components/tier-badge";
 import { PlaceholderArt } from "@/components/placeholder-art";
 import { formatCents } from "@/lib/money";
 import { editsLabel, ADDON_PRICE_CENTS } from "@/lib/catalog";
+import { foundersDiscountCents, FOUNDERS_PACKAGE } from "@/lib/bundles";
 
 export default function CartPage() {
   const cart = useCart();
@@ -23,6 +24,10 @@ export default function CartPage() {
     (a, r) => a + (r.line.video ? ADDON_PRICE_CENTS.video : 0) + (r.line.zoom ? ADDON_PRICE_CENTS.zoom : 0),
     0
   );
+  const discountCents = foundersDiscountCents(
+    resolved.map((r) => ({ slug: r.item!.slug, priceCents: r.item!.priceCents }))
+  );
+  const foundersInCart = resolved.filter((r) => (FOUNDERS_PACKAGE.slugs as readonly string[]).includes(r.item!.slug)).length;
 
   return (
     <section className="mx-auto max-w-[1100px] px-7 pb-20 pt-[60px]">
@@ -38,7 +43,7 @@ export default function CartPage() {
             <Link href="/intake" className="rounded-xl bg-cyan px-6 py-[15px] font-semibold text-cyan-ink">
               Start a video intake
             </Link>
-            <Link href="/deliverables" className="rounded-xl border border-[#CFD8B8] bg-white px-6 py-[15px] font-semibold">
+            <Link href="/deliverables" className="rounded-xl border border-[#C9D1CC] bg-white px-6 py-[15px] font-semibold">
               Browse the menu
             </Link>
           </div>
@@ -118,10 +123,23 @@ export default function CartPage() {
             <div className="mt-[18px] grid gap-[11px] text-[15px]">
               <Row label={`${resolved.length} ${resolved.length === 1 ? "deliverable" : "deliverables"}`} value={formatCents(itemsTotal)} />
               <Row label="Add-ons" value={addonTotal ? formatCents(addonTotal) : "None selected"} valueClass="text-olive" />
+              {discountCents > 0 && (
+                <Row
+                  label={`${FOUNDERS_PACKAGE.name} (${FOUNDERS_PACKAGE.discountPct}% off)`}
+                  value={`−${formatCents(discountCents)}`}
+                  valueClass="text-green"
+                />
+              )}
             </div>
-            <div className="mt-4 flex items-baseline justify-between border-t border-[#EFEDE2] pt-4">
+            {foundersInCart > 0 && foundersInCart < FOUNDERS_PACKAGE.slugs.length && (
+              <p className="mt-3 rounded-xl bg-green-tint px-3 py-2 text-[13px] text-green">
+                Add the rest of the {FOUNDERS_PACKAGE.name} (Customer Discovery, Go-to-Market Strategy and Funding
+                Roadmap) to save {FOUNDERS_PACKAGE.discountPct}%.
+              </p>
+            )}
+            <div className="mt-4 flex items-baseline justify-between border-t border-[#E3E7E1] pt-4">
               <span className="text-[15px] font-semibold">Total</span>
-              <span className="font-display text-[28px] font-bold text-green">{formatCents(itemsTotal + addonTotal)}</span>
+              <span className="font-display text-[28px] font-bold text-green">{formatCents(itemsTotal + addonTotal - discountCents)}</span>
             </div>
             <p className="mt-2 text-[12.5px] text-faint">Includes any selected add-ons.</p>
 
@@ -181,7 +199,7 @@ function AddonToggle({
     <label onClick={onToggle} className="flex cursor-pointer items-center gap-[11px] text-[14.5px]">
       <span
         className="h-[22px] w-[22px] flex-shrink-0 rounded-[7px] border-2"
-        style={{ borderColor: checked ? "#2D7B5F" : "#CFCBB8", background: checked ? "#2D7B5F" : "#FFFFFF" }}
+        style={{ borderColor: checked ? "#2D7B5F" : "#C9D1CC", background: checked ? "#2D7B5F" : "#FFFFFF" }}
       />
       <span className="flex-1">{label}</span>
       <span className="font-semibold text-olive">{price}</span>
@@ -206,7 +224,7 @@ function DeliveryOption({
     <button
       onClick={onClick}
       className="rounded-[13px] border-2 p-[14px] text-left"
-      style={{ borderColor: active ? "#2D7B5F" : "#E4E0D2", background: active ? "#EFF6F2" : "#FFFFFF" }}
+      style={{ borderColor: active ? "#2D7B5F" : "#C9D1CC", background: active ? "#EFF6F2" : "#FFFFFF" }}
     >
       <div className="text-[14.5px] font-semibold">
         {title} {tag && <span className="text-[12px] font-semibold text-green">{tag}</span>}

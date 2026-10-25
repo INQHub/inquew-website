@@ -44,8 +44,14 @@ export default async function DashboardAccountPage() {
       <div className="mt-[18px] rounded-[20px] border border-line bg-white p-[26px]">
         <h3 className="text-[18px] font-semibold">Data and privacy</h3>
         <div className="mt-[14px] grid gap-[10px] text-[14px] text-muted">
-          <div>Intake videos are transcribed to text. No facial or voice biometric data is stored.</div>
-          <div>Raw video and transcripts follow a fixed retention window, encrypted at rest.</div>
+          <div>
+            Your recordings, transcripts and answers are your business library: kept encrypted while your account is
+            active so future diagnostics build on them, and never used to train AI.
+          </div>
+          <div>
+            Delete them anytime below. Completed deliverables, purchase records and terms acceptances are kept for 7
+            years for legal and accounting purposes. <a href="/privacy">Privacy policy</a>
+          </div>
         </div>
         <div className="mt-[18px]">
           <AccountPrivacyActions />

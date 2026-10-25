@@ -191,7 +191,7 @@ export function DeliverableForm({ deliverable }: { deliverable?: Deliverable }) 
         .input {
           width: 100%;
           border-radius: 11px;
-          border: 1px solid #e4e0d2;
+          border: 1px solid #C9D1CC;
           padding: 12px 14px;
           outline: none;
         }

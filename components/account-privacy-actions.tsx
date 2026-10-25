@@ -29,14 +29,19 @@ export function AccountPrivacyActions() {
   }
 
   async function deleteRecordings() {
-    if (!confirm("Delete all intake transcripts and video references? This cannot be undone.")) return;
+    if (
+      !confirm(
+        "Delete all your recordings and transcripts?\n\nInquew uses these to make future diagnostics and deliverables more accurate for your business. Once deleted, they can't be recovered."
+      )
+    )
+      return;
     setDeleting(true);
     setMessage(null);
     try {
       const res = await fetch("/api/account/delete-recordings", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not delete recordings");
-      setMessage(`Cleared ${data.cleared} intake session${data.cleared === 1 ? "" : "s"}.`);
+      setMessage(`Deleted the recordings and transcripts from ${data.cleared} intake${data.cleared === 1 ? "" : "s"}.`);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -59,7 +64,7 @@ export function AccountPrivacyActions() {
           disabled={deleting}
           className="rounded-[11px] border border-[#E8C3C3] px-[18px] py-3 text-[14px] font-semibold text-[#A64B4B] disabled:opacity-60"
         >
-          {deleting ? "Deleting…" : "Delete intake recordings"}
+          {deleting ? "Deleting…" : "Delete recordings and transcripts"}
         </button>
       </div>
       {message && <p className="mt-3 text-[13px] text-muted">{message}</p>}

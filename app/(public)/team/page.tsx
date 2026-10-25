@@ -43,7 +43,7 @@ export default function TeamPage() {
           </div>
           <Link
             href="/contact"
-            className="justify-self-start rounded-xl border border-[#CFD8B8] bg-white px-6 py-[15px] font-semibold hover:border-green"
+            className="justify-self-start rounded-xl border border-[#C9D1CC] bg-white px-6 py-[15px] font-semibold hover:border-green"
           >
             Get in touch
           </Link>

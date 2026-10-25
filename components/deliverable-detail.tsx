@@ -122,15 +122,15 @@ export function DeliverableDetail({
             Add to cart · {formatCents(item.priceCents + addonTotal)}
           </button>
           {onClose ? (
-            <button onClick={onClose} className="rounded-[13px] border border-[#CFD8B8] bg-white px-[22px] py-4 font-semibold">
+            <button onClick={onClose} className="rounded-[13px] border border-[#C9D1CC] bg-white px-[22px] py-4 font-semibold">
               Keep browsing
             </button>
           ) : (
-            <Link href={backHref ?? "/deliverables"} className="rounded-[13px] border border-[#CFD8B8] bg-white px-[22px] py-4 font-semibold">
+            <Link href={backHref ?? "/deliverables"} className="rounded-[13px] border border-[#C9D1CC] bg-white px-[22px] py-4 font-semibold">
               Back to menu
             </Link>
           )}
-          <span className="text-[13px] text-faint">Created by a human consultant, reviewed before release.</span>
+          <span className="text-[13px] text-faint">Built by Inquew AI · Quality-checked by a consultant before release.</span>
         </div>
       </div>
     </div>
@@ -152,11 +152,11 @@ function AddonRow({
     <label
       onClick={onToggle}
       className="flex cursor-pointer items-center gap-3 rounded-xl border border-line3 px-[14px] py-3"
-      style={{ background: checked ? "#EFF6F2" : "#FDFCF9" }}
+      style={{ background: checked ? "#EFF6F2" : "#FFFFFF" }}
     >
       <span
         className="h-[22px] w-[22px] flex-shrink-0 rounded-[7px] border-2"
-        style={{ borderColor: checked ? "#2D7B5F" : "#CFCBB8", background: checked ? "#2D7B5F" : "#FFFFFF" }}
+        style={{ borderColor: checked ? "#2D7B5F" : "#C9D1CC", background: checked ? "#2D7B5F" : "#FFFFFF" }}
       />
       <span className="flex-1 text-[14.5px]">{label}</span>
       <span className="font-semibold text-olive">{price}</span>

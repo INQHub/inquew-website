@@ -1,6 +1,6 @@
-export const TIER_COLOR: Record<number, string> = { 1: "#978E4C", 2: "#2D7B5F", 3: "#425206" };
+export const TIER_COLOR: Record<number, string> = { 1: "#7A7240", 2: "#2D7B5F", 3: "#425206" };
 export const TIER_LABEL: Record<number, string> = { 1: "Tier 1", 2: "Tier 2", 3: "Tier 3" };
-export const TIER_RANGE: Record<number, string> = { 1: "$60–$150", 2: "$150–$500", 3: "$500–$1,500" };
+export const TIER_RANGE: Record<number, string> = { 1: "$60–$170", 2: "$170–$550", 3: "$550–$1,650" };
 export const TIER_EDITS: Record<number, number> = { 1: 0, 2: 1, 3: 4 };
 
 export function editsLabel(tier: number): string {

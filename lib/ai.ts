@@ -107,6 +107,93 @@ function parseStatementJson(raw: string): { statements: StatementDraft[]; recomm
   return parsed;
 }
 
+async function askClaudeForJson(system: string, user: string, maxTokens: number): Promise<unknown> {
+  const message = await anthropic().messages.create({
+    model: "claude-sonnet-5",
+    max_tokens: maxTokens,
+    system,
+    messages: [{ role: "user", content: user }]
+  });
+  const textBlock = message.content.find((b): b is Anthropic.TextBlock => b.type === "text");
+  if (!textBlock) throw new Error("Claude returned no text content");
+  const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("Could not find JSON in Claude response");
+  return JSON.parse(jsonMatch[0]);
+}
+
+const QUESTIONS_SYSTEM_PROMPT = `You write the diagnostic questions for Inquew, a consulting platform for small-business owners who find AI and technology overwhelming.
+
+Given the client's chosen problem statement and their intake transcript, respond with ONLY a JSON object (no markdown fences, no commentary):
+
+{ "questions": ["question one", "question two", ...] }
+
+Rules:
+- Write 4 to 6 questions. Each builds on the problem statement and on what the client already said; never ask for something the transcript already answers.
+- Plain, friendly language a busy owner can answer in a few sentences. One question per item, no sub-questions, no jargon.
+- Cover, where relevant: when and how often it happens, who it affects, what it costs, what was tried, which tools are involved, how success would be measured.
+- Do not ask for sensitive data (financial statements, ID numbers, bank details, passwords, API keys).
+- Do not include a "magic wand" or dream-outcome question; that is always added separately as the last question.`;
+
+/** 4–6 tailored diagnostic questions for the chosen problem statement. */
+export async function generateDiagnosticQuestions(transcript: string, statement: string): Promise<string[]> {
+  const parsed = (await askClaudeForJson(
+    QUESTIONS_SYSTEM_PROMPT,
+    `Problem statement:\n"""\n${statement}\n"""\n\nIntake transcript:\n"""\n${transcript.slice(0, 8000)}\n"""`,
+    900
+  )) as { questions?: unknown };
+  if (!Array.isArray(parsed.questions)) throw new Error("Claude response missing questions");
+  return parsed.questions.map(String).map((q) => q.trim()).filter(Boolean);
+}
+
+export type DiagnosisInput = {
+  statement: string;
+  transcript: string;
+  qa: { question: string; answer: string }[];
+  context: { website?: string; industry?: string; department?: string; role?: string };
+  catalog: (CatalogRef & { tier: number })[];
+};
+
+const DIAGNOSIS_SYSTEM_PROMPT = `You write the diagnosis summary for Inquew, a consulting platform for small-business owners.
+
+Given the client's problem statement, intake transcript, diagnostic answers, business details and a menu of deliverables, respond with ONLY a JSON object (no markdown fences, no commentary):
+
+{ "summary": "…", "recommendedSlugs": ["tier-one-slug", "slug", "slug"] }
+
+Rules for "summary":
+- About half a page (180–280 words), in plain language, addressed to the owner as "you". No jargon, no headings, no bullet characters; separate paragraphs with a blank line.
+- Explain what the real underlying problem is, why it is happening, and what to do next.
+- Ground every claim in the client's own words: quote short phrases they said, introduced with "You said".
+- Do not invent numbers, facts, studies or sources that are not in the input.
+
+Rules for "recommendedSlugs":
+- 3 slugs chosen ONLY from the provided menu, ranked by how directly they address the problem.
+- The FIRST slug must be a Tier 1 deliverable: the best low-cost place to start.`;
+
+/** Written diagnosis plus ranked deliverable recommendations (first one is Tier 1). */
+export async function writeDiagnosis(input: DiagnosisInput): Promise<{ summary: string; recommendedSlugs: string[] }> {
+  const menu = input.catalog
+    .map((c) => `- ${c.slug} (Tier ${c.tier}): "${c.title}" (${c.category}) — ${c.teaser}`)
+    .join("\n");
+  const answers = input.qa.map((q, i) => `Q${i + 1}. ${q.question}\nA: ${q.answer || "(no answer)"}`).join("\n\n");
+  const ctx = Object.entries(input.context)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join("\n");
+  const parsed = (await askClaudeForJson(
+    DIAGNOSIS_SYSTEM_PROMPT,
+    `Problem statement:\n"""\n${input.statement}\n"""\n\nIntake transcript:\n"""\n${input.transcript.slice(0, 6000)}\n"""\n\nDiagnostic answers:\n"""\n${answers.slice(0, 6000)}\n"""\n\nBusiness details:\n${ctx || "(none given)"}\n\nDeliverable menu:\n${menu}`,
+    1600
+  )) as { summary?: unknown; recommendedSlugs?: unknown };
+  if (typeof parsed.summary !== "string" || !Array.isArray(parsed.recommendedSlugs)) {
+    throw new Error("Claude response missing expected fields");
+  }
+  const valid = new Set(input.catalog.map((c) => c.slug));
+  return {
+    summary: parsed.summary.trim(),
+    recommendedSlugs: parsed.recommendedSlugs.map(String).filter((s) => valid.has(s)).slice(0, 3)
+  };
+}
+
 /** Simple word-overlap scoring, used if the AI recommendation call fails or is unavailable. */
 export function keywordFallbackRecommendation(transcript: string, catalog: CatalogRef[], limit = 4): string[] {
   const words = new Set(

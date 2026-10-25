@@ -5,26 +5,26 @@ const STEPS_LONG = [
   {
     n: 1,
     title: "Submit a 2-minute video describing your business problem",
-    body: "Before you record, we show you exactly what happens to the video: it is transcribed to text, no biometric data is retained, and AI is limited to the diagnosis step. If you would rather not use it, there is a manual path with a consultant instead.",
+    body: "Before you record, we show you exactly how AI is used and what happens to your video: it is transcribed to text, stored encrypted in your account, and never used to train AI. If you would rather not use AI, you can message us instead.",
     note: "Consent notice shown before recording"
   },
   {
     n: 2,
-    title: "Get 3 AI-generated problem statement options instantly",
-    body: "Your transcript becomes three candidate framings of the same problem, each from a different angle. Pick the closest one, edit it, or ask for three new ones. You are never handed a single framing to accept.",
-    note: "AI-generated statements are disclosed as such"
+    title: "Pick a problem statement, then take the free diagnostic",
+    body: "Your transcript becomes three candidate framings of the same problem. Pick the closest one, edit it, or ask for three new ones. Then answer up to seven questions about it, ending with the magic-wand question, and get a written diagnosis with recommended next steps.",
+    note: "Your first diagnostic is free"
   },
   {
     n: 3,
     title: "Browse the deliverables menu and choose what you need",
-    body: "Twenty-one items with the price on the front, from $60 to $1,500. Filter by tier, category, or price. Add optional walkthrough video or a 30-minute Zoom consultation where they apply.",
-    note: "No packages, no minimum, no proposal"
+    body: "Every item has the price on the front, from $60 to $1,650. Filter by tier, category, or price. Add optional walkthrough video or a 30-minute Zoom consultation where they apply.",
+    note: "No minimum, no proposal"
   },
   {
     n: 4,
-    title: "A human consultant creates and reviews your deliverable",
-    body: "A consultant builds the artifact using AI-assisted tools, then a reviewer signs off before anything is released. This happens at every tier, including the $60 items. Tier 3 adds 1-on-1 consultations to the build.",
-    note: "Human review is mandatory at every tier"
+    title: "AI agents build it, a consultant checks it",
+    body: "Inquew's AI agents build the deliverable from your diagnosis and documents. A consultant then checks it for accuracy and quality, and sends it back for rework if it falls short. This happens at every tier, including the $60 items.",
+    note: "Consultant quality check at every tier"
   },
   {
     n: 5,
@@ -69,17 +69,17 @@ export default function HowItWorksPage() {
           <div className="rounded-[20px] border border-green-border bg-green-tint p-[26px]">
             <h3 className="text-[19px] font-semibold text-green">What AI does here</h3>
             <div className="mt-[14px] grid gap-[9px] text-[14.5px]">
-              <div>Transcribes your video to text</div>
-              <div>Drafts three candidate problem statements</div>
-              <div>Assists the consultant while they build</div>
+              <div>Transcribes your video and audio answers to text</div>
+              <div>Drafts problem statements, diagnostic questions and your summary</div>
+              <div>Builds the deliverables you buy</div>
             </div>
           </div>
           <div className="rounded-[20px] border border-olive-border bg-olive-tint p-[26px]">
             <h3 className="text-[19px] font-semibold text-olive">What AI never does</h3>
             <div className="mt-[14px] grid gap-[9px] text-[14.5px]">
-              <div>Author the deliverable you buy</div>
-              <div>Skip the human review step, at any tier</div>
-              <div>Retain facial or voice biometric data</div>
+              <div>Release a deliverable without a consultant&apos;s quality check</div>
+              <div>Train on your data</div>
+              <div>Create face or voice biometric data</div>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function HowItWorksPage() {
           </Link>
           <Link
             href="/deliverables"
-            className="rounded-[13px] border border-[#CFD8B8] bg-white px-[26px] py-4 text-[16px] font-semibold hover:border-green"
+            className="rounded-[13px] border border-[#C9D1CC] bg-white px-[26px] py-4 text-[16px] font-semibold hover:border-green"
           >
             Skip to the menu
           </Link>

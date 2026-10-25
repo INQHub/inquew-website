@@ -13,7 +13,7 @@
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4 {
-    @apply font-display text-ink;
+    @apply font-display text-forest;
     line-height: 1.12;
     letter-spacing: -0.01em;
   }
@@ -21,11 +21,15 @@
     @apply text-green;
   }
   a:hover {
-    @apply text-cyan-hover;
+    @apply text-forest;
   }
   ::selection {
     background: #13e2e9;
-    color: #0b2e22;
+    color: #14401a;
+  }
+  :focus-visible {
+    outline: 3px solid #2dc6f0;
+    outline-offset: 2px;
   }
 }
 
@@ -45,5 +49,28 @@
 }
 
 .placeholder-art {
-  background-image: repeating-linear-gradient(135deg, #F4F1E6 0 8px, #EAE6D6 8px 16px);
+  background-image: repeating-linear-gradient(135deg, #F1F4F0 0 8px, #E6EBE7 8px 16px);
+}
+
+@keyframes sproutPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+.animate-sprout {
+  animation: sproutPulse 2.4s ease-in-out infinite;
+}
+.animate-shimmer {
+  animation: shimmer 1.8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-sprout,
+  .animate-shimmer,
+  .animate-pulse-dot,
+  .animate-bar-grow {
+    animation: none;
+  }
 }

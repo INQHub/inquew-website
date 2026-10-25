@@ -5,6 +5,8 @@ import { auth } from "@/lib/auth";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { generateOrderDisplayId } from "@/lib/order-id";
 import { TIER_EDITS, ADDON_PRICE_CENTS } from "@/lib/catalog";
+import { foundersDiscountCents } from "@/lib/bundles";
+import { TERMS_VERSION } from "@/lib/terms";
 
 const schema = z.object({
   lines: z.array(z.object({ deliverableId: z.string(), video: z.boolean().optional(), zoom: z.boolean().optional() })).min(1),
@@ -12,7 +14,11 @@ const schema = z.object({
   deliveryEmail: z.string().email().optional(),
   contactName: z.string().min(1),
   contactEmail: z.string().email(),
-  businessName: z.string().optional()
+  businessName: z.string().optional(),
+  // The deliverable terms gate: no order is created unless the client accepted the
+  // current version of the terms in the checkout modal.
+  acceptTerms: z.literal(true),
+  termsVersion: z.string()
 });
 
 export async function POST(req: NextRequest) {
@@ -25,6 +31,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid checkout payload", details: parsed.error.flatten() }, { status: 400 });
   }
   const input = parsed.data;
+  if (input.termsVersion !== TERMS_VERSION) {
+    return NextResponse.json(
+      { error: "The deliverable terms were updated. Please review and accept the latest version." },
+      { status: 409 }
+    );
+  }
 
   const deliverables = await prisma.deliverable.findMany({
     where: { id: { in: input.lines.map((l) => l.deliverableId) }, active: true }
@@ -50,6 +62,9 @@ export async function POST(req: NextRequest) {
     };
   });
 
+  const discountCents = foundersDiscountCents(deliverables.map((d) => ({ slug: d.slug, priceCents: d.priceCents })));
+  subtotalCents -= discountCents;
+
   const order = await prisma.order.create({
     data: {
       displayId: generateOrderDisplayId(),
@@ -61,6 +76,9 @@ export async function POST(req: NextRequest) {
       contactEmail: input.contactEmail,
       businessName: input.businessName,
       subtotalCents,
+      discountCents,
+      termsAcceptedAt: new Date(),
+      termsVersion: TERMS_VERSION,
       lines: { create: lineData }
     }
   });
