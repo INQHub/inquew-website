@@ -11,10 +11,23 @@ const NAV = [
   { href: "/dashboard/files", label: "Your files" },
   { href: "/dashboard/downloads", label: "Downloads" },
   { href: "/dashboard/orders", label: "Purchase history" },
+  { href: "/dashboard/billing", label: "Plan & billing" },
   { href: "/dashboard/account", label: "Settings" }
 ];
 
-export function DashboardSidebar({ name, businessName, unread = 0 }: { name: string; businessName: string; unread?: number }) {
+type Meter = { plan: string; line: string; used: number; allowance: number };
+
+export function DashboardSidebar({
+  name,
+  businessName,
+  unread = 0,
+  meter = null
+}: {
+  name: string;
+  businessName: string;
+  unread?: number;
+  meter?: Meter | null;
+}) {
   const pathname = usePathname();
   const initials = name
     .split(" ")
@@ -51,6 +64,18 @@ export function DashboardSidebar({ name, businessName, unread = 0 }: { name: str
         })}
       </nav>
       <div className="mt-auto grid gap-[14px]">
+        {meter && (
+          <Link href="/dashboard/billing" className="grid gap-2 rounded-[11px] bg-[#1E5225] px-[14px] py-3 text-white hover:text-white">
+            <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#C4D6CA]">{meter.plan}</span>
+            <span className="h-[6px] overflow-hidden rounded-full bg-[#2F6B3A]">
+              <span
+                className="block h-full rounded-full bg-sky"
+                style={{ width: `${meter.allowance ? Math.min(100, Math.round((meter.used / meter.allowance) * 100)) : 0}%` }}
+              />
+            </span>
+            <span className="text-[12.5px] text-[#DCE8E0]">{meter.line}</span>
+          </Link>
+        )}
         <Link href="/intake" className="rounded-[11px] bg-cyan px-[14px] py-3 text-center text-[14px] font-semibold text-cyan-ink">
           Work on a new problem
         </Link>

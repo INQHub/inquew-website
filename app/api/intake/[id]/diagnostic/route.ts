@@ -19,6 +19,7 @@ import {
   readContext,
   type DiagnosticQA
 } from "@/lib/diagnostic";
+import { getPlanUsage, quotaErrorBody, saveDiagnosisWithinQuota, QuotaExceededError } from "@/lib/subscriptions";
 
 // Question writing and the final diagnosis are single Claude calls, but give them room.
 export const maxDuration = 60;
@@ -120,6 +121,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (intake.diagnosedAt) return NextResponse.json({ id });
 
+  // Each diagnosis counts against the owner's plan. Check before the slow AI call; the
+  // allowance is claimed for real when the diagnosis is saved below.
+  const ownerId = intake.userId ?? session.user.id;
+  const usage = await getPlanUsage(ownerId);
+  if (!usage || usage.remaining <= 0) {
+    return NextResponse.json(usage ? quotaErrorBody(usage) : { error: "Account not found" }, { status: usage ? 402 : 404 });
+  }
+
   const catalog: CatalogRow[] = await prisma.deliverable.findMany({
     where: { active: true },
     select: { slug: true, title: true, teaser: true, category: true, keyword: true, tier: true }
@@ -142,15 +151,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!summary) summary = fallbackSummary(chosen.text, qa);
   if (!slugs.length) slugs = keywordFallbackRecommendation(allText, catalog, 3);
 
-  await prisma.intakeSession.update({
-    where: { id },
-    data: {
+  try {
+    await saveDiagnosisWithinQuota(ownerId, id, {
       diagnosisSummary: summary,
       recommendedSlugs: withStartHere(slugs, catalog, allText),
       diagnosedAt: new Date(),
       status: "COMPLETE"
-    }
-  });
+    });
+  } catch (err) {
+    if (err instanceof QuotaExceededError) return NextResponse.json(quotaErrorBody(err.usage), { status: 402 });
+    throw err;
+  }
 
   return NextResponse.json({ id });
 }

@@ -8,6 +8,8 @@ import { useTrackEvent } from "@/components/use-track-event";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { INDUSTRIES, DEPARTMENTS } from "@/lib/diagnostic";
 import { StepTracker, Thinking, RecordingDisclaimer, AnswerRecorder, LockIcon } from "@/components/diagnostic/flow-parts";
+import { QuotaPrompt } from "@/components/plan/quota-prompt";
+import type { PlanUsage } from "@/lib/plans";
 
 type Statement = { id: string; text: string; angle: string | null };
 
@@ -132,6 +134,8 @@ export default function IntakePage() {
   const [role, setRole] = useState("");
 
   const [flowError, setFlowError] = useState<string | null>(null);
+  // Set when the client's plan has no diagnostics left; `saved` = blocked at the end, answers kept.
+  const [quota, setQuota] = useState<{ usage: PlanUsage; saved: boolean } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -169,6 +173,11 @@ export default function IntakePage() {
       body: JSON.stringify({ consent: true })
     });
     const data = await res.json();
+    if (res.status === 402) {
+      setQuota({ usage: data.usage, saved: false });
+      window.scrollTo(0, 0);
+      return;
+    }
     setSessionId(data.id);
     track("intake_consented");
     go("record");
@@ -334,7 +343,7 @@ export default function IntakePage() {
       body: JSON.stringify(body)
     });
     const data = await safeJson(res);
-    if (!res.ok) throw Object.assign(new Error(data?.error || "Something went wrong"), { status: res.status });
+    if (!res.ok) throw Object.assign(new Error(data?.error || "Something went wrong"), { status: res.status, data });
     return data;
   }
 
@@ -389,9 +398,14 @@ export default function IntakePage() {
       router.push(`/diagnosis/${data.id}`);
       router.refresh();
     } catch (err) {
-      const status = (err as { status?: number }).status;
+      const { status, data } = err as { status?: number; data?: { usage?: PlanUsage } };
       if (status === 401) {
         go("account");
+        return;
+      }
+      if (status === 402 && data?.usage) {
+        setQuota({ usage: data.usage, saved: true });
+        window.scrollTo(0, 0);
         return;
       }
       setFlowError(err instanceof Error ? err.message : "Could not finish your diagnosis");
@@ -401,6 +415,14 @@ export default function IntakePage() {
 
   const canConfirm = picked !== null || (editing && customText.trim().length > 0);
   const isLastQuestion = qIndex === questions.length - 1;
+
+  if (quota) {
+    return (
+      <section className="mx-auto max-w-[860px] px-6 pb-20 pt-12">
+        <QuotaPrompt usage={quota.usage} saved={quota.saved} />
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto max-w-[860px] px-6 pb-20 pt-12">

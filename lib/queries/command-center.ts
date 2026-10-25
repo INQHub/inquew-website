@@ -59,6 +59,9 @@ export async function getCommandCenter() {
       })
     ]);
 
+  const plans = await prisma.user.groupBy({ by: ["plan"], where: { role: "CLIENT", plan: { in: ["PRO", "PREMIUM"] } }, _count: { _all: true } });
+  const planCount = (p: "PRO" | "PREMIUM") => plans.find((x) => x.plan === p)?._count._all ?? 0;
+
   const count = (s: OrderStatus) => byStatus.find((b) => b.status === s)?._count._all ?? 0;
 
   const activity = [
@@ -88,7 +91,9 @@ export async function getCommandCenter() {
       inProgress: count("ASSIGNED") + count("IN_REVIEW") + count("AWAITING_CLIENT_REVIEW"),
       queued: count("PAID"),
       clients,
-      unreadThreads
+      unreadThreads,
+      pro: planCount("PRO"),
+      premium: planCount("PREMIUM")
     },
     pipeline: [
       { label: "Queued", n: count("PAID"), href: "/admin/orders" },
