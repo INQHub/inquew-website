@@ -58,7 +58,7 @@ export default function CartPage() {
               return (
                 <div key={item.id} className="rounded-[20px] border border-line bg-white p-5">
                   <div className="flex items-start gap-4">
-                    <PlaceholderArt className="h-[72px] w-[72px] flex-shrink-0" />
+                    <PlaceholderArt category={item.category} className="h-[72px] w-[72px] flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <TierBadge tier={item.tier} />
                       <h3 className="mt-2 text-[18px] font-semibold">{item.title}</h3>
