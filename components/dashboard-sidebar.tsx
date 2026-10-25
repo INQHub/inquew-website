@@ -7,12 +7,14 @@ import { signOut } from "next-auth/react";
 const NAV = [
   { href: "/dashboard", label: "Overview" },
   { href: "/dashboard/diagnoses", label: "Diagnoses" },
-  { href: "/dashboard/orders", label: "Orders" },
+  { href: "/dashboard/messages", label: "Messages" },
+  { href: "/dashboard/files", label: "Your files" },
   { href: "/dashboard/downloads", label: "Downloads" },
-  { href: "/dashboard/account", label: "Account" }
+  { href: "/dashboard/orders", label: "Purchase history" },
+  { href: "/dashboard/account", label: "Settings" }
 ];
 
-export function DashboardSidebar({ name, businessName }: { name: string; businessName: string }) {
+export function DashboardSidebar({ name, businessName, unread = 0 }: { name: string; businessName: string; unread?: number }) {
   const pathname = usePathname();
   const initials = name
     .split(" ")
@@ -32,7 +34,7 @@ export function DashboardSidebar({ name, businessName }: { name: string; busines
       </div>
       <nav className="grid gap-[5px]">
         {NAV.map((item) => {
-          const active = pathname === item.href;
+          const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
@@ -41,6 +43,9 @@ export function DashboardSidebar({ name, businessName }: { name: string; busines
               style={{ background: active ? "#2D7B5F" : "transparent", color: active ? "#FFFFFF" : "#DCE8E0" }}
             >
               {item.label}
+              {item.href === "/dashboard/messages" && unread > 0 && (
+                <span className="ml-2 rounded-full bg-sky px-2 text-[12px] font-bold text-forest">{unread}</span>
+              )}
             </Link>
           );
         })}

@@ -1,16 +1,22 @@
 import Link from "next/link";
+import { coverUrl, getPublishedCaseStudies } from "@/lib/case-studies";
+
+// Cover images are short-lived signed links, so render on request.
+export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Case studies — Inquew" };
 
-// Real case studies get added here once clients approve them. Until then the page shows
-// which industries they'll cover and invites clients to take part.
+// Published case studies come from the admin panel. Until the first one is published the
+// page shows which industries they'll cover and invites clients to take part.
 const UPCOMING = [
   { industry: "Trades and construction", img: "city" },
   { industry: "Logistics", img: "plane" },
   { industry: "Home services", img: "briefcase" }
 ];
 
-export default function CaseStudiesPage() {
+export default async function CaseStudiesPage() {
+  const studies = await getPublishedCaseStudies();
+  const covers = await Promise.all(studies.map((s) => coverUrl(s.coverKey)));
   return (
     <div>
       <section className="bg-sand">
@@ -26,22 +32,48 @@ export default function CaseStudiesPage() {
       </section>
 
       <section className="mx-auto grid max-w-[1200px] gap-6 px-6 py-14">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
-          {UPCOMING.map((c) => (
-            <article key={c.industry} className="flex flex-col overflow-hidden rounded-[20px] border border-line">
-              <div className="flex h-[150px] items-center justify-center bg-green-tint">
-                <img src={`/assets/mascots/${c.img}.png`} alt="" className="h-[96px] w-auto" />
-              </div>
-              <div className="grid gap-2 p-6">
-                <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-olive">{c.industry}</span>
-                <strong className="font-display text-[20px] text-forest">Case study coming soon</strong>
-                <span className="text-[15px] text-muted">
-                  We&apos;re working with our first clients now. Their stories will appear here.
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
+        {studies.length > 0 ? (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+            {studies.map((c, i) => (
+              <Link
+                key={c.id}
+                href={`/case-studies/${c.slug}`}
+                className="group flex flex-col overflow-hidden rounded-[20px] border border-line bg-white text-ink hover:border-green hover:text-ink"
+              >
+                <div className="flex h-[180px] items-center justify-center overflow-hidden bg-green-tint">
+                  {covers[i] ? (
+                    <img src={covers[i]!} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <img src="/assets/mascots/city.png" alt="" className="h-[96px] w-auto" />
+                  )}
+                </div>
+                <div className="grid gap-2 p-6">
+                  <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-olive">{c.industry}</span>
+                  <strong className="font-display text-[20px] text-forest">{c.title}</strong>
+                  <span className="text-[15px] text-muted">{c.summary}</span>
+                  <span className="mt-1 text-[14px] font-semibold text-green group-hover:underline">Read the story →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+            {UPCOMING.map((c) => (
+              <article key={c.industry} className="flex flex-col overflow-hidden rounded-[20px] border border-line">
+                <div className="flex h-[150px] items-center justify-center bg-green-tint">
+                  <img src={`/assets/mascots/${c.img}.png`} alt="" className="h-[96px] w-auto" />
+                </div>
+                <div className="grid gap-2 p-6">
+                  <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-olive">{c.industry}</span>
+                  <strong className="font-display text-[20px] text-forest">Case study coming soon</strong>
+                  <span className="text-[15px] text-muted">
+                    We&apos;re working with our first clients now. Their stories will appear here.
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="bg-forest">
